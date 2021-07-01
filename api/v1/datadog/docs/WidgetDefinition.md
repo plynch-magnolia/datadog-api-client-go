@@ -6,16 +6,16 @@ Name | Type | Description | Notes
 ---- | ---- | ----------- | ------
 **AlertId** | **string** | ID of the alert to use in the widget. | 
 **Time** | Pointer to [**WidgetTime**](WidgetTime.md) |  | [optional] 
-**Title** | Pointer to **string** | Title of your widget. | [optional] 
+**Title** | Pointer to **string** | Title of the widget. | [optional] 
 **TitleAlign** | Pointer to [**WidgetTextAlign**](WidgetTextAlign.md) |  | [optional] 
 **TitleSize** | Pointer to **string** | Size of the title. | [optional] 
-**Type** | [**TreeMapWidgetDefinitionType**](TreeMapWidgetDefinitionType.md) |  | [default to TREEMAPWIDGETDEFINITIONTYPE_TREEMAP]
+**Type** | [**ListStreamWidgetDefinitionType**](ListStreamWidgetDefinitionType.md) |  | [default to LISTSTREAMWIDGETDEFINITIONTYPE_LIST_STREAM]
 **VizType** | [**WidgetVizType**](WidgetVizType.md) |  | 
 **Precision** | Pointer to **int64** | Number of decimals to show. If not defined, the widget uses the raw value. | [optional] 
 **TextAlign** | Pointer to [**WidgetTextAlign**](WidgetTextAlign.md) |  | [optional] 
 **Unit** | Pointer to **string** | Unit to display with the value. | [optional] 
 **CustomLinks** | Pointer to [**[]WidgetCustomLink**](WidgetCustomLink.md) | List of custom links. | [optional] 
-**Requests** | [**[]TreeMapWidgetRequest**](TreeMapWidgetRequest.md) | List of top list widget requests. | 
+**Requests** | [**[]ListStreamWidgetRequest**](ListStreamWidgetRequest.md) | Request payload used to query items. | 
 **Check** | **string** | Name of the check to use in the widget. | 
 **Group** | Pointer to **[]string** | List of tag prefixes to group by. | [optional] 
 **GroupBy** | [**TreeMapGroupBy**](TreeMapGroupBy.md) |  | 
@@ -23,7 +23,7 @@ Name | Type | Description | Notes
 **Tags** | Pointer to **[]string** | List of tags used to filter the groups reporting a cluster check. | [optional] 
 **LegendSize** | Pointer to **string** | Available legend sizes for a widget. Should be one of \&quot;0\&quot;, \&quot;2\&quot;, \&quot;4\&quot;, \&quot;8\&quot;, \&quot;16\&quot;, or \&quot;auto\&quot;. | [optional] 
 **Markers** | Pointer to [**[]WidgetMarker**](WidgetMarker.md) | List of markers. | [optional] 
-**ShowLegend** | Pointer to **bool** | (screenboard only) Show the legend for this widget. | [optional] 
+**ShowLegend** | Pointer to **bool** | Whether or not to display the legend on this widget. | [optional] 
 **Xaxis** | Pointer to [**WidgetAxis**](WidgetAxis.md) |  | [optional] 
 **Yaxis** | Pointer to [**WidgetAxis**](WidgetAxis.md) |  | [optional] 
 **EventSize** | Pointer to [**WidgetEventSize**](WidgetEventSize.md) |  | [optional] 
@@ -98,12 +98,13 @@ Name | Type | Description | Notes
 **RightYaxis** | Pointer to [**WidgetAxis**](WidgetAxis.md) |  | [optional] 
 **ColorBy** | [**TreeMapColorBy**](TreeMapColorBy.md) |  | [default to TREEMAPCOLORBY_USER]
 **SizeBy** | [**TreeMapSizeBy**](TreeMapSizeBy.md) |  | 
+**Viz** | [**ListStreamWidgetDefinitionSource**](ListStreamWidgetDefinitionSource.md) |  | [default to LISTSTREAMWIDGETDEFINITIONSOURCE_ISSUE_STREAM]
 
 ## Methods
 
 ### NewWidgetDefinition
 
-`func NewWidgetDefinition(alertId string, type_ TreeMapWidgetDefinitionType, vizType WidgetVizType, requests []TreeMapWidgetRequest, check string, groupBy TreeMapGroupBy, grouping WidgetGrouping, query string, text string, style HostMapWidgetDefinitionStyle, view GeomapWidgetDefinitionView, layoutType WidgetLayoutType, widgets []Widget, url string, content string, viewType string, filters []string, service string, env string, spanName string, colorBy TreeMapColorBy, sizeBy TreeMapSizeBy, ) *WidgetDefinition`
+`func NewWidgetDefinition(alertId string, type_ ListStreamWidgetDefinitionType, vizType WidgetVizType, requests []ListStreamWidgetRequest, check string, groupBy TreeMapGroupBy, grouping WidgetGrouping, query string, text string, style HostMapWidgetDefinitionStyle, view GeomapWidgetDefinitionView, layoutType WidgetLayoutType, widgets []Widget, url string, content string, viewType string, filters []string, service string, env string, spanName string, colorBy TreeMapColorBy, sizeBy TreeMapSizeBy, viz ListStreamWidgetDefinitionSource, ) *WidgetDefinition`
 
 NewWidgetDefinition instantiates a new WidgetDefinition object
 This constructor will assign default values to properties that have it defined,
@@ -240,20 +241,20 @@ HasTitleSize returns a boolean if a field has been set.
 
 ### GetType
 
-`func (o *WidgetDefinition) GetType() TreeMapWidgetDefinitionType`
+`func (o *WidgetDefinition) GetType() ListStreamWidgetDefinitionType`
 
 GetType returns the Type field if non-nil, zero value otherwise.
 
 ### GetTypeOk
 
-`func (o *WidgetDefinition) GetTypeOk() (*TreeMapWidgetDefinitionType, bool)`
+`func (o *WidgetDefinition) GetTypeOk() (*ListStreamWidgetDefinitionType, bool)`
 
 GetTypeOk returns a tuple with the Type field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetType
 
-`func (o *WidgetDefinition) SetType(v TreeMapWidgetDefinitionType)`
+`func (o *WidgetDefinition) SetType(v ListStreamWidgetDefinitionType)`
 
 SetType sets Type field to given value.
 
@@ -380,20 +381,20 @@ HasCustomLinks returns a boolean if a field has been set.
 
 ### GetRequests
 
-`func (o *WidgetDefinition) GetRequests() []TreeMapWidgetRequest`
+`func (o *WidgetDefinition) GetRequests() []ListStreamWidgetRequest`
 
 GetRequests returns the Requests field if non-nil, zero value otherwise.
 
 ### GetRequestsOk
 
-`func (o *WidgetDefinition) GetRequestsOk() (*[]TreeMapWidgetRequest, bool)`
+`func (o *WidgetDefinition) GetRequestsOk() (*[]ListStreamWidgetRequest, bool)`
 
 GetRequestsOk returns a tuple with the Requests field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetRequests
 
-`func (o *WidgetDefinition) SetRequests(v []TreeMapWidgetRequest)`
+`func (o *WidgetDefinition) SetRequests(v []ListStreamWidgetRequest)`
 
 SetRequests sets Requests field to given value.
 
@@ -2356,6 +2357,26 @@ and a boolean to check if the value has been set.
 `func (o *WidgetDefinition) SetSizeBy(v TreeMapSizeBy)`
 
 SetSizeBy sets SizeBy field to given value.
+
+
+### GetViz
+
+`func (o *WidgetDefinition) GetViz() ListStreamWidgetDefinitionSource`
+
+GetViz returns the Viz field if non-nil, zero value otherwise.
+
+### GetVizOk
+
+`func (o *WidgetDefinition) GetVizOk() (*ListStreamWidgetDefinitionSource, bool)`
+
+GetVizOk returns a tuple with the Viz field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetViz
+
+`func (o *WidgetDefinition) SetViz(v ListStreamWidgetDefinitionSource)`
+
+SetViz sets Viz field to given value.
 
 
 
