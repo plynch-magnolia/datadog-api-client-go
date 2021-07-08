@@ -28,6 +28,8 @@ type LogsPipeline struct {
 	Processors *[]LogsProcessor `json:"processors,omitempty"`
 	// Type of pipeline.
 	Type *string `json:"type,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewLogsPipeline instantiates a new LogsPipeline object
@@ -266,6 +268,9 @@ func (o *LogsPipeline) SetType(v string) {
 
 func (o LogsPipeline) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if o.Filter != nil {
 		toSerialize["filter"] = o.Filter
 	}
@@ -291,6 +296,7 @@ func (o LogsPipeline) MarshalJSON() ([]byte, error) {
 }
 
 func (o *LogsPipeline) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Name *string `json:"name"`
 	}{}
@@ -303,16 +309,21 @@ func (o *LogsPipeline) UnmarshalJSON(bytes []byte) (err error) {
 		Processors *[]LogsProcessor `json:"processors,omitempty"`
 		Type       *string          `json:"type,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Name == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["name"]; required.Name == nil && !ok {
 		return fmt.Errorf("Required field name missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Filter = all.Filter
 	o.Id = all.Id

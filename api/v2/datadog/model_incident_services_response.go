@@ -20,6 +20,8 @@ type IncidentServicesResponse struct {
 	// Included related resources which the user requested.
 	Included *[]IncidentServiceIncludedItems `json:"included,omitempty"`
 	Meta     *IncidentServicesResponseMeta   `json:"meta,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewIncidentServicesResponse instantiates a new IncidentServicesResponse object
@@ -130,6 +132,9 @@ func (o *IncidentServicesResponse) SetMeta(v IncidentServicesResponseMeta) {
 
 func (o IncidentServicesResponse) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["data"] = o.Data
 	}
@@ -143,6 +148,7 @@ func (o IncidentServicesResponse) MarshalJSON() ([]byte, error) {
 }
 
 func (o *IncidentServicesResponse) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Data *[]IncidentServiceResponseData `json:"data"`
 	}{}
@@ -151,16 +157,21 @@ func (o *IncidentServicesResponse) UnmarshalJSON(bytes []byte) (err error) {
 		Included *[]IncidentServiceIncludedItems `json:"included,omitempty"`
 		Meta     *IncidentServicesResponseMeta   `json:"meta,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Data == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["data"]; required.Data == nil && !ok {
 		return fmt.Errorf("Required field data missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Data = all.Data
 	o.Included = all.Included

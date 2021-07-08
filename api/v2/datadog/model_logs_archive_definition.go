@@ -20,6 +20,8 @@ type LogsArchiveDefinition struct {
 	Id *string `json:"id,omitempty"`
 	// The type of the resource. The value should always be archives.
 	Type string `json:"type"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewLogsArchiveDefinition instantiates a new LogsArchiveDefinition object
@@ -132,6 +134,9 @@ func (o *LogsArchiveDefinition) SetType(v string) {
 
 func (o LogsArchiveDefinition) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if o.Attributes != nil {
 		toSerialize["attributes"] = o.Attributes
 	}
@@ -145,6 +150,7 @@ func (o LogsArchiveDefinition) MarshalJSON() ([]byte, error) {
 }
 
 func (o *LogsArchiveDefinition) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Type *string `json:"type"`
 	}{}
@@ -153,16 +159,21 @@ func (o *LogsArchiveDefinition) UnmarshalJSON(bytes []byte) (err error) {
 		Id         *string                `json:"id,omitempty"`
 		Type       string                 `json:"type"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Type == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Attributes = all.Attributes
 	o.Id = all.Id

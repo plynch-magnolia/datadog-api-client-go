@@ -18,6 +18,8 @@ type IFrameWidgetDefinition struct {
 	Type IFrameWidgetDefinitionType `json:"type"`
 	// URL of the iframe.
 	Url string `json:"url"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewIFrameWidgetDefinition instantiates a new IFrameWidgetDefinition object
@@ -91,6 +93,9 @@ func (o *IFrameWidgetDefinition) SetUrl(v string) {
 
 func (o IFrameWidgetDefinition) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["type"] = o.Type
 	}
@@ -101,6 +106,7 @@ func (o IFrameWidgetDefinition) MarshalJSON() ([]byte, error) {
 }
 
 func (o *IFrameWidgetDefinition) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Type *IFrameWidgetDefinitionType `json:"type"`
 		Url  *string                     `json:"url"`
@@ -109,19 +115,28 @@ func (o *IFrameWidgetDefinition) UnmarshalJSON(bytes []byte) (err error) {
 		Type IFrameWidgetDefinitionType `json:"type"`
 		Url  string                     `json:"url"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Type == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
-	if required.Url == nil {
+	if _, ok := o.UnparsedObject["url"]; required.Url == nil && !ok {
 		return fmt.Errorf("Required field url missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Type = all.Type
 	o.Url = all.Url

@@ -28,6 +28,8 @@ type GroupWidgetDefinition struct {
 	Type       GroupWidgetDefinitionType `json:"type"`
 	// List of widget groups.
 	Widgets []Widget `json:"widgets"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewGroupWidgetDefinition instantiates a new GroupWidgetDefinition object
@@ -290,6 +292,9 @@ func (o *GroupWidgetDefinition) SetWidgets(v []Widget) {
 
 func (o GroupWidgetDefinition) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if o.BackgroundColor != nil {
 		toSerialize["background_color"] = o.BackgroundColor
 	}
@@ -318,6 +323,7 @@ func (o GroupWidgetDefinition) MarshalJSON() ([]byte, error) {
 }
 
 func (o *GroupWidgetDefinition) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		LayoutType *WidgetLayoutType          `json:"layout_type"`
 		Type       *GroupWidgetDefinitionType `json:"type"`
@@ -333,22 +339,39 @@ func (o *GroupWidgetDefinition) UnmarshalJSON(bytes []byte) (err error) {
 		Type            GroupWidgetDefinitionType `json:"type"`
 		Widgets         []Widget                  `json:"widgets"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.LayoutType == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["layout_type"]; required.LayoutType == nil && !ok {
 		return fmt.Errorf("Required field layout_type missing")
 	}
-	if required.Type == nil {
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
-	if required.Widgets == nil {
+	if _, ok := o.UnparsedObject["widgets"]; required.Widgets == nil && !ok {
 		return fmt.Errorf("Required field widgets missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.LayoutType; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.TitleAlign; v != nil && !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.BackgroundColor = all.BackgroundColor
 	o.BannerImg = all.BannerImg

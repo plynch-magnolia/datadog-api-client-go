@@ -22,6 +22,8 @@ type NotebookAbsoluteTime struct {
 	Live *bool `json:"live,omitempty"`
 	// The start time.
 	Start time.Time `json:"start"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewNotebookAbsoluteTime instantiates a new NotebookAbsoluteTime object
@@ -125,6 +127,9 @@ func (o *NotebookAbsoluteTime) SetStart(v time.Time) {
 
 func (o NotebookAbsoluteTime) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["end"] = o.End
 	}
@@ -138,6 +143,7 @@ func (o NotebookAbsoluteTime) MarshalJSON() ([]byte, error) {
 }
 
 func (o *NotebookAbsoluteTime) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		End   *time.Time `json:"end"`
 		Start *time.Time `json:"start"`
@@ -147,19 +153,24 @@ func (o *NotebookAbsoluteTime) UnmarshalJSON(bytes []byte) (err error) {
 		Live  *bool     `json:"live,omitempty"`
 		Start time.Time `json:"start"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.End == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["end"]; required.End == nil && !ok {
 		return fmt.Errorf("Required field end missing")
 	}
-	if required.Start == nil {
+	if _, ok := o.UnparsedObject["start"]; required.Start == nil && !ok {
 		return fmt.Errorf("Required field start missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.End = all.End
 	o.Live = all.Live

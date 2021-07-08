@@ -19,6 +19,8 @@ type SyntheticsGlobalVariableParseTestOptions struct {
 	Field  *string                                      `json:"field,omitempty"`
 	Parser SyntheticsVariableParser                     `json:"parser"`
 	Type   SyntheticsGlobalVariableParseTestOptionsType `json:"type"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewSyntheticsGlobalVariableParseTestOptions instantiates a new SyntheticsGlobalVariableParseTestOptions object
@@ -122,6 +124,9 @@ func (o *SyntheticsGlobalVariableParseTestOptions) SetType(v SyntheticsGlobalVar
 
 func (o SyntheticsGlobalVariableParseTestOptions) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if o.Field != nil {
 		toSerialize["field"] = o.Field
 	}
@@ -135,6 +140,7 @@ func (o SyntheticsGlobalVariableParseTestOptions) MarshalJSON() ([]byte, error) 
 }
 
 func (o *SyntheticsGlobalVariableParseTestOptions) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Parser *SyntheticsVariableParser                     `json:"parser"`
 		Type   *SyntheticsGlobalVariableParseTestOptionsType `json:"type"`
@@ -144,19 +150,28 @@ func (o *SyntheticsGlobalVariableParseTestOptions) UnmarshalJSON(bytes []byte) (
 		Parser SyntheticsVariableParser                     `json:"parser"`
 		Type   SyntheticsGlobalVariableParseTestOptionsType `json:"type"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Parser == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["parser"]; required.Parser == nil && !ok {
 		return fmt.Errorf("Required field parser missing")
 	}
-	if required.Type == nil {
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Field = all.Field
 	o.Parser = all.Parser

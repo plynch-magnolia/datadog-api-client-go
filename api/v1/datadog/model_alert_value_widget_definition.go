@@ -28,6 +28,8 @@ type AlertValueWidgetDefinition struct {
 	Type      AlertValueWidgetDefinitionType `json:"type"`
 	// Unit to display with the value.
 	Unit *string `json:"unit,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewAlertValueWidgetDefinition instantiates a new AlertValueWidgetDefinition object
@@ -293,6 +295,9 @@ func (o *AlertValueWidgetDefinition) SetUnit(v string) {
 
 func (o AlertValueWidgetDefinition) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["alert_id"] = o.AlertId
 	}
@@ -321,6 +326,7 @@ func (o AlertValueWidgetDefinition) MarshalJSON() ([]byte, error) {
 }
 
 func (o *AlertValueWidgetDefinition) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		AlertId *string                         `json:"alert_id"`
 		Type    *AlertValueWidgetDefinitionType `json:"type"`
@@ -335,19 +341,36 @@ func (o *AlertValueWidgetDefinition) UnmarshalJSON(bytes []byte) (err error) {
 		Type       AlertValueWidgetDefinitionType `json:"type"`
 		Unit       *string                        `json:"unit,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.AlertId == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["alert_id"]; required.AlertId == nil && !ok {
 		return fmt.Errorf("Required field alert_id missing")
 	}
-	if required.Type == nil {
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.TextAlign; v != nil && !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.TitleAlign; v != nil && !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.AlertId = all.AlertId
 	o.Precision = all.Precision

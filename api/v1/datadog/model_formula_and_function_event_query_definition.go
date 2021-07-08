@@ -24,6 +24,8 @@ type FormulaAndFunctionEventQueryDefinition struct {
 	// Name of the query for use in formulas.
 	Name   string                                        `json:"name"`
 	Search *FormulaAndFunctionEventQueryDefinitionSearch `json:"search,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewFormulaAndFunctionEventQueryDefinition instantiates a new FormulaAndFunctionEventQueryDefinition object
@@ -216,6 +218,9 @@ func (o *FormulaAndFunctionEventQueryDefinition) SetSearch(v FormulaAndFunctionE
 
 func (o FormulaAndFunctionEventQueryDefinition) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["compute"] = o.Compute
 	}
@@ -238,6 +243,7 @@ func (o FormulaAndFunctionEventQueryDefinition) MarshalJSON() ([]byte, error) {
 }
 
 func (o *FormulaAndFunctionEventQueryDefinition) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Compute    *FormulaAndFunctionEventQueryDefinitionCompute `json:"compute"`
 		DataSource *FormulaAndFunctionEventsDataSource            `json:"data_source"`
@@ -251,22 +257,31 @@ func (o *FormulaAndFunctionEventQueryDefinition) UnmarshalJSON(bytes []byte) (er
 		Name       string                                        `json:"name"`
 		Search     *FormulaAndFunctionEventQueryDefinitionSearch `json:"search,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Compute == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["compute"]; required.Compute == nil && !ok {
 		return fmt.Errorf("Required field compute missing")
 	}
-	if required.DataSource == nil {
+	if _, ok := o.UnparsedObject["data_source"]; required.DataSource == nil && !ok {
 		return fmt.Errorf("Required field data_source missing")
 	}
-	if required.Name == nil {
+	if _, ok := o.UnparsedObject["name"]; required.Name == nil && !ok {
 		return fmt.Errorf("Required field name missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.DataSource; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Compute = all.Compute
 	o.DataSource = all.DataSource

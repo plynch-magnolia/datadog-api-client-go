@@ -18,6 +18,8 @@ type DashboardListItemRequest struct {
 	// ID of the dashboard.
 	Id   string        `json:"id"`
 	Type DashboardType `json:"type"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewDashboardListItemRequest instantiates a new DashboardListItemRequest object
@@ -89,6 +91,9 @@ func (o *DashboardListItemRequest) SetType(v DashboardType) {
 
 func (o DashboardListItemRequest) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["id"] = o.Id
 	}
@@ -99,6 +104,7 @@ func (o DashboardListItemRequest) MarshalJSON() ([]byte, error) {
 }
 
 func (o *DashboardListItemRequest) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Id   *string        `json:"id"`
 		Type *DashboardType `json:"type"`
@@ -107,19 +113,28 @@ func (o *DashboardListItemRequest) UnmarshalJSON(bytes []byte) (err error) {
 		Id   string        `json:"id"`
 		Type DashboardType `json:"type"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Id == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["id"]; required.Id == nil && !ok {
 		return fmt.Errorf("Required field id missing")
 	}
-	if required.Type == nil {
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Id = all.Id
 	o.Type = all.Type

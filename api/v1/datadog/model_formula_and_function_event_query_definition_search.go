@@ -17,6 +17,8 @@ import (
 type FormulaAndFunctionEventQueryDefinitionSearch struct {
 	// Events search string.
 	Query string `json:"query"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewFormulaAndFunctionEventQueryDefinitionSearch instantiates a new FormulaAndFunctionEventQueryDefinitionSearch object
@@ -63,6 +65,9 @@ func (o *FormulaAndFunctionEventQueryDefinitionSearch) SetQuery(v string) {
 
 func (o FormulaAndFunctionEventQueryDefinitionSearch) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["query"] = o.Query
 	}
@@ -70,22 +75,28 @@ func (o FormulaAndFunctionEventQueryDefinitionSearch) MarshalJSON() ([]byte, err
 }
 
 func (o *FormulaAndFunctionEventQueryDefinitionSearch) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Query *string `json:"query"`
 	}{}
 	all := struct {
 		Query string `json:"query"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Query == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["query"]; required.Query == nil && !ok {
 		return fmt.Errorf("Required field query missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Query = all.Query
 	return nil

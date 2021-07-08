@@ -16,6 +16,8 @@ import (
 // RelationshipToOrganization Relationship to an organization.
 type RelationshipToOrganization struct {
 	Data RelationshipToOrganizationData `json:"data"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewRelationshipToOrganization instantiates a new RelationshipToOrganization object
@@ -62,6 +64,9 @@ func (o *RelationshipToOrganization) SetData(v RelationshipToOrganizationData) {
 
 func (o RelationshipToOrganization) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["data"] = o.Data
 	}
@@ -69,22 +74,28 @@ func (o RelationshipToOrganization) MarshalJSON() ([]byte, error) {
 }
 
 func (o *RelationshipToOrganization) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Data *RelationshipToOrganizationData `json:"data"`
 	}{}
 	all := struct {
 		Data RelationshipToOrganizationData `json:"data"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Data == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["data"]; required.Data == nil && !ok {
 		return fmt.Errorf("Required field data missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Data = all.Data
 	return nil

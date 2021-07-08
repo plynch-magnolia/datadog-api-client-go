@@ -17,6 +17,8 @@ import (
 type LogsIndexesOrder struct {
 	// Array of strings identifying by their name(s) the index(es) of your organization. Logs are tested against the query filter of each index one by one, following the order of the array. Logs are eventually stored in the first matching index.
 	IndexNames []string `json:"index_names"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewLogsIndexesOrder instantiates a new LogsIndexesOrder object
@@ -63,6 +65,9 @@ func (o *LogsIndexesOrder) SetIndexNames(v []string) {
 
 func (o LogsIndexesOrder) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["index_names"] = o.IndexNames
 	}
@@ -70,22 +75,28 @@ func (o LogsIndexesOrder) MarshalJSON() ([]byte, error) {
 }
 
 func (o *LogsIndexesOrder) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		IndexNames *[]string `json:"index_names"`
 	}{}
 	all := struct {
 		IndexNames []string `json:"index_names"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.IndexNames == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["index_names"]; required.IndexNames == nil && !ok {
 		return fmt.Errorf("Required field index_names missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.IndexNames = all.IndexNames
 	return nil

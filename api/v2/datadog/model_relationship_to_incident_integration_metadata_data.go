@@ -18,6 +18,8 @@ type RelationshipToIncidentIntegrationMetadataData struct {
 	// A unique identifier that represents the integration metadata.
 	Id   string                          `json:"id"`
 	Type IncidentIntegrationMetadataType `json:"type"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewRelationshipToIncidentIntegrationMetadataData instantiates a new RelationshipToIncidentIntegrationMetadataData object
@@ -91,6 +93,9 @@ func (o *RelationshipToIncidentIntegrationMetadataData) SetType(v IncidentIntegr
 
 func (o RelationshipToIncidentIntegrationMetadataData) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["id"] = o.Id
 	}
@@ -101,6 +106,7 @@ func (o RelationshipToIncidentIntegrationMetadataData) MarshalJSON() ([]byte, er
 }
 
 func (o *RelationshipToIncidentIntegrationMetadataData) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Id   *string                          `json:"id"`
 		Type *IncidentIntegrationMetadataType `json:"type"`
@@ -109,19 +115,28 @@ func (o *RelationshipToIncidentIntegrationMetadataData) UnmarshalJSON(bytes []by
 		Id   string                          `json:"id"`
 		Type IncidentIntegrationMetadataType `json:"type"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Id == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["id"]; required.Id == nil && !ok {
 		return fmt.Errorf("Required field id missing")
 	}
-	if required.Type == nil {
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Id = all.Id
 	o.Type = all.Type

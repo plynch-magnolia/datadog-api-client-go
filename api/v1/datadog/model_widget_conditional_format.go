@@ -31,6 +31,8 @@ type WidgetConditionalFormat struct {
 	Timeframe *string `json:"timeframe,omitempty"`
 	// Value for the comparator.
 	Value float64 `json:"value"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewWidgetConditionalFormat instantiates a new WidgetConditionalFormat object
@@ -319,6 +321,9 @@ func (o *WidgetConditionalFormat) SetValue(v float64) {
 
 func (o WidgetConditionalFormat) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["comparator"] = o.Comparator
 	}
@@ -350,6 +355,7 @@ func (o WidgetConditionalFormat) MarshalJSON() ([]byte, error) {
 }
 
 func (o *WidgetConditionalFormat) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Comparator *WidgetComparator `json:"comparator"`
 		Palette    *WidgetPalette    `json:"palette"`
@@ -366,22 +372,35 @@ func (o *WidgetConditionalFormat) UnmarshalJSON(bytes []byte) (err error) {
 		Timeframe     *string          `json:"timeframe,omitempty"`
 		Value         float64          `json:"value"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Comparator == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["comparator"]; required.Comparator == nil && !ok {
 		return fmt.Errorf("Required field comparator missing")
 	}
-	if required.Palette == nil {
+	if _, ok := o.UnparsedObject["palette"]; required.Palette == nil && !ok {
 		return fmt.Errorf("Required field palette missing")
 	}
-	if required.Value == nil {
+	if _, ok := o.UnparsedObject["value"]; required.Value == nil && !ok {
 		return fmt.Errorf("Required field value missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Comparator; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Palette; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Comparator = all.Comparator
 	o.CustomBgColor = all.CustomBgColor

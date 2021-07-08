@@ -18,6 +18,8 @@ import (
 type IdpFormData struct {
 	// The path to the XML metadata file you wish to upload.
 	IdpFile *os.File `json:"idp_file"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewIdpFormData instantiates a new IdpFormData object
@@ -64,6 +66,9 @@ func (o *IdpFormData) SetIdpFile(v *os.File) {
 
 func (o IdpFormData) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["idp_file"] = o.IdpFile
 	}
@@ -71,22 +76,28 @@ func (o IdpFormData) MarshalJSON() ([]byte, error) {
 }
 
 func (o *IdpFormData) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		IdpFile **os.File `json:"idp_file"`
 	}{}
 	all := struct {
 		IdpFile *os.File `json:"idp_file"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.IdpFile == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["idp_file"]; required.IdpFile == nil && !ok {
 		return fmt.Errorf("Required field idp_file missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.IdpFile = all.IdpFile
 	return nil

@@ -19,6 +19,8 @@ type LogsMetricGroupBy struct {
 	Path string `json:"path"`
 	// Eventual name of the tag that gets created. By default, the path attribute is used as the tag name.
 	TagName *string `json:"tag_name,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewLogsMetricGroupBy instantiates a new LogsMetricGroupBy object
@@ -97,6 +99,9 @@ func (o *LogsMetricGroupBy) SetTagName(v string) {
 
 func (o LogsMetricGroupBy) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["path"] = o.Path
 	}
@@ -107,6 +112,7 @@ func (o LogsMetricGroupBy) MarshalJSON() ([]byte, error) {
 }
 
 func (o *LogsMetricGroupBy) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Path *string `json:"path"`
 	}{}
@@ -114,16 +120,21 @@ func (o *LogsMetricGroupBy) UnmarshalJSON(bytes []byte) (err error) {
 		Path    string  `json:"path"`
 		TagName *string `json:"tag_name,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Path == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["path"]; required.Path == nil && !ok {
 		return fmt.Errorf("Required field path missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Path = all.Path
 	o.TagName = all.TagName

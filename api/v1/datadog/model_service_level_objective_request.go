@@ -29,6 +29,8 @@ type ServiceLevelObjectiveRequest struct {
 	// The thresholds (timeframes and associated targets) for this service level objective object.
 	Thresholds []SLOThreshold `json:"thresholds"`
 	Type       SLOType        `json:"type"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewServiceLevelObjectiveRequest instantiates a new ServiceLevelObjectiveRequest object
@@ -296,6 +298,9 @@ func (o *ServiceLevelObjectiveRequest) SetType(v SLOType) {
 
 func (o ServiceLevelObjectiveRequest) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if o.Description.IsSet() {
 		toSerialize["description"] = o.Description.Get()
 	}
@@ -324,6 +329,7 @@ func (o ServiceLevelObjectiveRequest) MarshalJSON() ([]byte, error) {
 }
 
 func (o *ServiceLevelObjectiveRequest) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Name       *string         `json:"name"`
 		Thresholds *[]SLOThreshold `json:"thresholds"`
@@ -339,22 +345,31 @@ func (o *ServiceLevelObjectiveRequest) UnmarshalJSON(bytes []byte) (err error) {
 		Thresholds  []SLOThreshold              `json:"thresholds"`
 		Type        SLOType                     `json:"type"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Name == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["name"]; required.Name == nil && !ok {
 		return fmt.Errorf("Required field name missing")
 	}
-	if required.Thresholds == nil {
+	if _, ok := o.UnparsedObject["thresholds"]; required.Thresholds == nil && !ok {
 		return fmt.Errorf("Required field thresholds missing")
 	}
-	if required.Type == nil {
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Description = all.Description
 	o.Groups = all.Groups

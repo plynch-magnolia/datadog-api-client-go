@@ -19,6 +19,8 @@ type LogsArchiveIntegrationS3 struct {
 	AccountId string `json:"account_id"`
 	// The path of the integration.
 	RoleName string `json:"role_name"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewLogsArchiveIntegrationS3 instantiates a new LogsArchiveIntegrationS3 object
@@ -90,6 +92,9 @@ func (o *LogsArchiveIntegrationS3) SetRoleName(v string) {
 
 func (o LogsArchiveIntegrationS3) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["account_id"] = o.AccountId
 	}
@@ -100,6 +105,7 @@ func (o LogsArchiveIntegrationS3) MarshalJSON() ([]byte, error) {
 }
 
 func (o *LogsArchiveIntegrationS3) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		AccountId *string `json:"account_id"`
 		RoleName  *string `json:"role_name"`
@@ -108,19 +114,24 @@ func (o *LogsArchiveIntegrationS3) UnmarshalJSON(bytes []byte) (err error) {
 		AccountId string `json:"account_id"`
 		RoleName  string `json:"role_name"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.AccountId == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["account_id"]; required.AccountId == nil && !ok {
 		return fmt.Errorf("Required field account_id missing")
 	}
-	if required.RoleName == nil {
+	if _, ok := o.UnparsedObject["role_name"]; required.RoleName == nil && !ok {
 		return fmt.Errorf("Required field role_name missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.AccountId = all.AccountId
 	o.RoleName = all.RoleName

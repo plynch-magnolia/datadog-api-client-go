@@ -28,6 +28,8 @@ type LogsLookupProcessor struct {
 	// Name of the attribute that contains the corresponding value in the mapping list or the `default_lookup` if not found in the mapping list.
 	Target string                  `json:"target"`
 	Type   LogsLookupProcessorType `json:"type"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewLogsLookupProcessor instantiates a new LogsLookupProcessor object
@@ -251,6 +253,9 @@ func (o *LogsLookupProcessor) SetType(v LogsLookupProcessorType) {
 
 func (o LogsLookupProcessor) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if o.DefaultLookup != nil {
 		toSerialize["default_lookup"] = o.DefaultLookup
 	}
@@ -276,6 +281,7 @@ func (o LogsLookupProcessor) MarshalJSON() ([]byte, error) {
 }
 
 func (o *LogsLookupProcessor) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		LookupTable *[]string                `json:"lookup_table"`
 		Source      *string                  `json:"source"`
@@ -291,25 +297,34 @@ func (o *LogsLookupProcessor) UnmarshalJSON(bytes []byte) (err error) {
 		Target        string                  `json:"target"`
 		Type          LogsLookupProcessorType `json:"type"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.LookupTable == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["lookup_table"]; required.LookupTable == nil && !ok {
 		return fmt.Errorf("Required field lookup_table missing")
 	}
-	if required.Source == nil {
+	if _, ok := o.UnparsedObject["source"]; required.Source == nil && !ok {
 		return fmt.Errorf("Required field source missing")
 	}
-	if required.Target == nil {
+	if _, ok := o.UnparsedObject["target"]; required.Target == nil && !ok {
 		return fmt.Errorf("Required field target missing")
 	}
-	if required.Type == nil {
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.DefaultLookup = all.DefaultLookup
 	o.IsEnabled = all.IsEnabled

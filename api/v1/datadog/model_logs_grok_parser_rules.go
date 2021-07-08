@@ -19,6 +19,8 @@ type LogsGrokParserRules struct {
 	MatchRules string `json:"match_rules"`
 	// List of support rules for the grok parser, separated by a new line.
 	SupportRules *string `json:"support_rules,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewLogsGrokParserRules instantiates a new LogsGrokParserRules object
@@ -101,6 +103,9 @@ func (o *LogsGrokParserRules) SetSupportRules(v string) {
 
 func (o LogsGrokParserRules) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["match_rules"] = o.MatchRules
 	}
@@ -111,6 +116,7 @@ func (o LogsGrokParserRules) MarshalJSON() ([]byte, error) {
 }
 
 func (o *LogsGrokParserRules) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		MatchRules *string `json:"match_rules"`
 	}{}
@@ -118,16 +124,21 @@ func (o *LogsGrokParserRules) UnmarshalJSON(bytes []byte) (err error) {
 		MatchRules   string  `json:"match_rules"`
 		SupportRules *string `json:"support_rules,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.MatchRules == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["match_rules"]; required.MatchRules == nil && !ok {
 		return fmt.Errorf("Required field match_rules missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.MatchRules = all.MatchRules
 	o.SupportRules = all.SupportRules

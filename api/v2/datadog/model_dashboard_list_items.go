@@ -19,6 +19,8 @@ type DashboardListItems struct {
 	Dashboards []DashboardListItem `json:"dashboards"`
 	// Number of dashboards in the dashboard list.
 	Total *int64 `json:"total,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewDashboardListItems instantiates a new DashboardListItems object
@@ -97,6 +99,9 @@ func (o *DashboardListItems) SetTotal(v int64) {
 
 func (o DashboardListItems) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["dashboards"] = o.Dashboards
 	}
@@ -107,6 +112,7 @@ func (o DashboardListItems) MarshalJSON() ([]byte, error) {
 }
 
 func (o *DashboardListItems) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Dashboards *[]DashboardListItem `json:"dashboards"`
 	}{}
@@ -114,16 +120,21 @@ func (o *DashboardListItems) UnmarshalJSON(bytes []byte) (err error) {
 		Dashboards []DashboardListItem `json:"dashboards"`
 		Total      *int64              `json:"total,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Dashboards == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["dashboards"]; required.Dashboards == nil && !ok {
 		return fmt.Errorf("Required field dashboards missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Dashboards = all.Dashboards
 	o.Total = all.Total

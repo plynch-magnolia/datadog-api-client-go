@@ -17,6 +17,8 @@ import (
 type ScatterPlotWidgetDefinitionRequests struct {
 	X ScatterPlotRequest `json:"x"`
 	Y ScatterPlotRequest `json:"y"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewScatterPlotWidgetDefinitionRequests instantiates a new ScatterPlotWidgetDefinitionRequests object
@@ -88,6 +90,9 @@ func (o *ScatterPlotWidgetDefinitionRequests) SetY(v ScatterPlotRequest) {
 
 func (o ScatterPlotWidgetDefinitionRequests) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["x"] = o.X
 	}
@@ -98,6 +103,7 @@ func (o ScatterPlotWidgetDefinitionRequests) MarshalJSON() ([]byte, error) {
 }
 
 func (o *ScatterPlotWidgetDefinitionRequests) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		X *ScatterPlotRequest `json:"x"`
 		Y *ScatterPlotRequest `json:"y"`
@@ -106,19 +112,24 @@ func (o *ScatterPlotWidgetDefinitionRequests) UnmarshalJSON(bytes []byte) (err e
 		X ScatterPlotRequest `json:"x"`
 		Y ScatterPlotRequest `json:"y"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.X == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["x"]; required.X == nil && !ok {
 		return fmt.Errorf("Required field x missing")
 	}
-	if required.Y == nil {
+	if _, ok := o.UnparsedObject["y"]; required.Y == nil && !ok {
 		return fmt.Errorf("Required field y missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.X = all.X
 	o.Y = all.Y

@@ -26,6 +26,8 @@ type ServiceCheck struct {
 	Tags []string `json:"tags"`
 	// Time of check.
 	Timestamp *int64 `json:"timestamp,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewServiceCheck instantiates a new ServiceCheck object
@@ -211,6 +213,9 @@ func (o *ServiceCheck) SetTimestamp(v int64) {
 
 func (o ServiceCheck) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["check"] = o.Check
 	}
@@ -233,6 +238,7 @@ func (o ServiceCheck) MarshalJSON() ([]byte, error) {
 }
 
 func (o *ServiceCheck) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Check    *string             `json:"check"`
 		HostName *string             `json:"host_name"`
@@ -247,25 +253,34 @@ func (o *ServiceCheck) UnmarshalJSON(bytes []byte) (err error) {
 		Tags      []string           `json:"tags"`
 		Timestamp *int64             `json:"timestamp,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Check == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["check"]; required.Check == nil && !ok {
 		return fmt.Errorf("Required field check missing")
 	}
-	if required.HostName == nil {
+	if _, ok := o.UnparsedObject["host_name"]; required.HostName == nil && !ok {
 		return fmt.Errorf("Required field host_name missing")
 	}
-	if required.Status == nil {
+	if _, ok := o.UnparsedObject["status"]; required.Status == nil && !ok {
 		return fmt.Errorf("Required field status missing")
 	}
-	if required.Tags == nil {
+	if _, ok := o.UnparsedObject["tags"]; required.Tags == nil && !ok {
 		return fmt.Errorf("Required field tags missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Status; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Check = all.Check
 	o.HostName = all.HostName

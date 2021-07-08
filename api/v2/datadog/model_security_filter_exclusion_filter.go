@@ -19,6 +19,8 @@ type SecurityFilterExclusionFilter struct {
 	Name string `json:"name"`
 	// Exclusion filter query. Logs that match this query are excluded from the security filter.
 	Query string `json:"query"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewSecurityFilterExclusionFilter instantiates a new SecurityFilterExclusionFilter object
@@ -90,6 +92,9 @@ func (o *SecurityFilterExclusionFilter) SetQuery(v string) {
 
 func (o SecurityFilterExclusionFilter) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["name"] = o.Name
 	}
@@ -100,6 +105,7 @@ func (o SecurityFilterExclusionFilter) MarshalJSON() ([]byte, error) {
 }
 
 func (o *SecurityFilterExclusionFilter) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Name  *string `json:"name"`
 		Query *string `json:"query"`
@@ -108,19 +114,24 @@ func (o *SecurityFilterExclusionFilter) UnmarshalJSON(bytes []byte) (err error) 
 		Name  string `json:"name"`
 		Query string `json:"query"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Name == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["name"]; required.Name == nil && !ok {
 		return fmt.Errorf("Required field name missing")
 	}
-	if required.Query == nil {
+	if _, ok := o.UnparsedObject["query"]; required.Query == nil && !ok {
 		return fmt.Errorf("Required field query missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Name = all.Name
 	o.Query = all.Query

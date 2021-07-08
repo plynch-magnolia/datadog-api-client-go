@@ -16,6 +16,8 @@ import (
 // NotebookRelativeTime Relative timeframe.
 type NotebookRelativeTime struct {
 	LiveSpan WidgetLiveSpan `json:"live_span"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewNotebookRelativeTime instantiates a new NotebookRelativeTime object
@@ -62,6 +64,9 @@ func (o *NotebookRelativeTime) SetLiveSpan(v WidgetLiveSpan) {
 
 func (o NotebookRelativeTime) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["live_span"] = o.LiveSpan
 	}
@@ -69,22 +74,32 @@ func (o NotebookRelativeTime) MarshalJSON() ([]byte, error) {
 }
 
 func (o *NotebookRelativeTime) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		LiveSpan *WidgetLiveSpan `json:"live_span"`
 	}{}
 	all := struct {
 		LiveSpan WidgetLiveSpan `json:"live_span"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.LiveSpan == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["live_span"]; required.LiveSpan == nil && !ok {
 		return fmt.Errorf("Required field live_span missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.LiveSpan; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.LiveSpan = all.LiveSpan
 	return nil

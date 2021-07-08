@@ -32,6 +32,8 @@ type SecurityMonitoringRuleCreatePayload struct {
 	Queries []SecurityMonitoringRuleQueryCreate `json:"queries"`
 	// Tags for generated signals.
 	Tags *[]string `json:"tags,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewSecurityMonitoringRuleCreatePayload instantiates a new SecurityMonitoringRuleCreatePayload object
@@ -299,6 +301,9 @@ func (o *SecurityMonitoringRuleCreatePayload) SetTags(v []string) {
 
 func (o SecurityMonitoringRuleCreatePayload) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["cases"] = o.Cases
 	}
@@ -330,6 +335,7 @@ func (o SecurityMonitoringRuleCreatePayload) MarshalJSON() ([]byte, error) {
 }
 
 func (o *SecurityMonitoringRuleCreatePayload) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Cases     *[]SecurityMonitoringRuleCaseCreate  `json:"cases"`
 		IsEnabled *bool                                `json:"isEnabled"`
@@ -349,31 +355,36 @@ func (o *SecurityMonitoringRuleCreatePayload) UnmarshalJSON(bytes []byte) (err e
 		Queries          []SecurityMonitoringRuleQueryCreate `json:"queries"`
 		Tags             *[]string                           `json:"tags,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Cases == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["cases"]; required.Cases == nil && !ok {
 		return fmt.Errorf("Required field cases missing")
 	}
-	if required.IsEnabled == nil {
+	if _, ok := o.UnparsedObject["isEnabled"]; required.IsEnabled == nil && !ok {
 		return fmt.Errorf("Required field isEnabled missing")
 	}
-	if required.Message == nil {
+	if _, ok := o.UnparsedObject["message"]; required.Message == nil && !ok {
 		return fmt.Errorf("Required field message missing")
 	}
-	if required.Name == nil {
+	if _, ok := o.UnparsedObject["name"]; required.Name == nil && !ok {
 		return fmt.Errorf("Required field name missing")
 	}
-	if required.Options == nil {
+	if _, ok := o.UnparsedObject["options"]; required.Options == nil && !ok {
 		return fmt.Errorf("Required field options missing")
 	}
-	if required.Queries == nil {
+	if _, ok := o.UnparsedObject["queries"]; required.Queries == nil && !ok {
 		return fmt.Errorf("Required field queries missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Cases = all.Cases
 	o.Filters = all.Filters

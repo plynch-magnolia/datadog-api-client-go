@@ -33,6 +33,8 @@ type SyntheticsBrowserTest struct {
 	// Array of tags attached to the test.
 	Tags *[]string                  `json:"tags,omitempty"`
 	Type *SyntheticsBrowserTestType `json:"type,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewSyntheticsBrowserTest instantiates a new SyntheticsBrowserTest object
@@ -403,6 +405,9 @@ func (o *SyntheticsBrowserTest) SetType(v SyntheticsBrowserTestType) {
 
 func (o SyntheticsBrowserTest) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if o.Config != nil {
 		toSerialize["config"] = o.Config
 	}
@@ -440,6 +445,7 @@ func (o SyntheticsBrowserTest) MarshalJSON() ([]byte, error) {
 }
 
 func (o *SyntheticsBrowserTest) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Message *string `json:"message"`
 	}{}
@@ -456,16 +462,29 @@ func (o *SyntheticsBrowserTest) UnmarshalJSON(bytes []byte) (err error) {
 		Tags      *[]string                    `json:"tags,omitempty"`
 		Type      *SyntheticsBrowserTestType   `json:"type,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Message == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["message"]; required.Message == nil && !ok {
 		return fmt.Errorf("Required field message missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Status; v != nil && !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; v != nil && !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Config = all.Config
 	o.Locations = all.Locations

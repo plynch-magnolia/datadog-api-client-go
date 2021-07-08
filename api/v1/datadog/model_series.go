@@ -27,6 +27,8 @@ type Series struct {
 	Tags *[]string `json:"tags,omitempty"`
 	// The type of the metric either `count`, `gauge`, or `rate`.
 	Type *string `json:"type,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewSeries instantiates a new Series object
@@ -241,6 +243,9 @@ func (o *Series) SetType(v string) {
 
 func (o Series) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if o.Host != nil {
 		toSerialize["host"] = o.Host
 	}
@@ -263,6 +268,7 @@ func (o Series) MarshalJSON() ([]byte, error) {
 }
 
 func (o *Series) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Metric *string      `json:"metric"`
 		Points *[][]float64 `json:"points"`
@@ -275,19 +281,24 @@ func (o *Series) UnmarshalJSON(bytes []byte) (err error) {
 		Tags     *[]string     `json:"tags,omitempty"`
 		Type     *string       `json:"type,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Metric == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["metric"]; required.Metric == nil && !ok {
 		return fmt.Errorf("Required field metric missing")
 	}
-	if required.Points == nil {
+	if _, ok := o.UnparsedObject["points"]; required.Points == nil && !ok {
 		return fmt.Errorf("Required field points missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Host = all.Host
 	o.Interval = all.Interval

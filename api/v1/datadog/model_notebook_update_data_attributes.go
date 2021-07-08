@@ -21,6 +21,8 @@ type NotebookUpdateDataAttributes struct {
 	Name   string             `json:"name"`
 	Status *NotebookStatus    `json:"status,omitempty"`
 	Time   NotebookGlobalTime `json:"time"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewNotebookUpdateDataAttributes instantiates a new NotebookUpdateDataAttributes object
@@ -153,6 +155,9 @@ func (o *NotebookUpdateDataAttributes) SetTime(v NotebookGlobalTime) {
 
 func (o NotebookUpdateDataAttributes) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["cells"] = o.Cells
 	}
@@ -169,6 +174,7 @@ func (o NotebookUpdateDataAttributes) MarshalJSON() ([]byte, error) {
 }
 
 func (o *NotebookUpdateDataAttributes) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Cells *[]NotebookUpdateCell `json:"cells"`
 		Name  *string               `json:"name"`
@@ -180,22 +186,31 @@ func (o *NotebookUpdateDataAttributes) UnmarshalJSON(bytes []byte) (err error) {
 		Status *NotebookStatus      `json:"status,omitempty"`
 		Time   NotebookGlobalTime   `json:"time"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Cells == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["cells"]; required.Cells == nil && !ok {
 		return fmt.Errorf("Required field cells missing")
 	}
-	if required.Name == nil {
+	if _, ok := o.UnparsedObject["name"]; required.Name == nil && !ok {
 		return fmt.Errorf("Required field name missing")
 	}
-	if required.Time == nil {
+	if _, ok := o.UnparsedObject["time"]; required.Time == nil && !ok {
 		return fmt.Errorf("Required field time missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Status; v != nil && !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Cells = all.Cells
 	o.Name = all.Name

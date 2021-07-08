@@ -16,6 +16,8 @@ import (
 // IncidentCreateRelationships The relationships the incident will have with other resources once created.
 type IncidentCreateRelationships struct {
 	Commander RelationshipToUser `json:"commander"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewIncidentCreateRelationships instantiates a new IncidentCreateRelationships object
@@ -62,6 +64,9 @@ func (o *IncidentCreateRelationships) SetCommander(v RelationshipToUser) {
 
 func (o IncidentCreateRelationships) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["commander"] = o.Commander
 	}
@@ -69,22 +74,28 @@ func (o IncidentCreateRelationships) MarshalJSON() ([]byte, error) {
 }
 
 func (o *IncidentCreateRelationships) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Commander *RelationshipToUser `json:"commander"`
 	}{}
 	all := struct {
 		Commander RelationshipToUser `json:"commander"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Commander == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["commander"]; required.Commander == nil && !ok {
 		return fmt.Errorf("Required field commander missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Commander = all.Commander
 	return nil

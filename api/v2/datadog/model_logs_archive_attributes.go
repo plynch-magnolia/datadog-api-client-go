@@ -25,6 +25,8 @@ type LogsArchiveAttributes struct {
 	// An array of tags to add to rehydrated logs from an archive.
 	RehydrationTags *[]string         `json:"rehydration_tags,omitempty"`
 	State           *LogsArchiveState `json:"state,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewLogsArchiveAttributes instantiates a new LogsArchiveAttributes object
@@ -223,6 +225,9 @@ func (o *LogsArchiveAttributes) SetState(v LogsArchiveState) {
 
 func (o LogsArchiveAttributes) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["destination"] = o.Destination.Get()
 	}
@@ -245,6 +250,7 @@ func (o LogsArchiveAttributes) MarshalJSON() ([]byte, error) {
 }
 
 func (o *LogsArchiveAttributes) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Destination *NullableLogsArchiveDestination `json:"destination"`
 		Name        *string                         `json:"name"`
@@ -258,22 +264,31 @@ func (o *LogsArchiveAttributes) UnmarshalJSON(bytes []byte) (err error) {
 		RehydrationTags *[]string                      `json:"rehydration_tags,omitempty"`
 		State           *LogsArchiveState              `json:"state,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Destination == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["destination"]; required.Destination == nil && !ok {
 		return fmt.Errorf("Required field destination missing")
 	}
-	if required.Name == nil {
+	if _, ok := o.UnparsedObject["name"]; required.Name == nil && !ok {
 		return fmt.Errorf("Required field name missing")
 	}
-	if required.Query == nil {
+	if _, ok := o.UnparsedObject["query"]; required.Query == nil && !ok {
 		return fmt.Errorf("Required field query missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.State; v != nil && !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Destination = all.Destination
 	o.IncludeTags = all.IncludeTags

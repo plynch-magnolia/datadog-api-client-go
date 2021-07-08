@@ -19,6 +19,8 @@ type MetricTagConfigurationUpdateData struct {
 	// The metric name for this resource.
 	Id   string                     `json:"id"`
 	Type MetricTagConfigurationType `json:"type"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewMetricTagConfigurationUpdateData instantiates a new MetricTagConfigurationUpdateData object
@@ -124,6 +126,9 @@ func (o *MetricTagConfigurationUpdateData) SetType(v MetricTagConfigurationType)
 
 func (o MetricTagConfigurationUpdateData) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if o.Attributes != nil {
 		toSerialize["attributes"] = o.Attributes
 	}
@@ -137,6 +142,7 @@ func (o MetricTagConfigurationUpdateData) MarshalJSON() ([]byte, error) {
 }
 
 func (o *MetricTagConfigurationUpdateData) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Id   *string                     `json:"id"`
 		Type *MetricTagConfigurationType `json:"type"`
@@ -146,19 +152,28 @@ func (o *MetricTagConfigurationUpdateData) UnmarshalJSON(bytes []byte) (err erro
 		Id         string                                  `json:"id"`
 		Type       MetricTagConfigurationType              `json:"type"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Id == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["id"]; required.Id == nil && !ok {
 		return fmt.Errorf("Required field id missing")
 	}
-	if required.Type == nil {
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Attributes = all.Attributes
 	o.Id = all.Id

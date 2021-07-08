@@ -29,6 +29,8 @@ type SLOHistoryMetrics struct {
 	RespVersion int64 `json:"resp_version"`
 	// An array of query timestamps in EPOCH milliseconds
 	Times []float64 `json:"times"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewSLOHistoryMetrics instantiates a new SLOHistoryMetrics object
@@ -257,6 +259,9 @@ func (o *SLOHistoryMetrics) SetTimes(v []float64) {
 
 func (o SLOHistoryMetrics) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["denominator"] = o.Denominator
 	}
@@ -285,6 +290,7 @@ func (o SLOHistoryMetrics) MarshalJSON() ([]byte, error) {
 }
 
 func (o *SLOHistoryMetrics) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Denominator *SLOHistoryMetricsSeries `json:"denominator"`
 		Interval    *int64                   `json:"interval"`
@@ -304,34 +310,39 @@ func (o *SLOHistoryMetrics) UnmarshalJSON(bytes []byte) (err error) {
 		RespVersion int64                   `json:"resp_version"`
 		Times       []float64               `json:"times"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Denominator == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["denominator"]; required.Denominator == nil && !ok {
 		return fmt.Errorf("Required field denominator missing")
 	}
-	if required.Interval == nil {
+	if _, ok := o.UnparsedObject["interval"]; required.Interval == nil && !ok {
 		return fmt.Errorf("Required field interval missing")
 	}
-	if required.Numerator == nil {
+	if _, ok := o.UnparsedObject["numerator"]; required.Numerator == nil && !ok {
 		return fmt.Errorf("Required field numerator missing")
 	}
-	if required.Query == nil {
+	if _, ok := o.UnparsedObject["query"]; required.Query == nil && !ok {
 		return fmt.Errorf("Required field query missing")
 	}
-	if required.ResType == nil {
+	if _, ok := o.UnparsedObject["res_type"]; required.ResType == nil && !ok {
 		return fmt.Errorf("Required field res_type missing")
 	}
-	if required.RespVersion == nil {
+	if _, ok := o.UnparsedObject["resp_version"]; required.RespVersion == nil && !ok {
 		return fmt.Errorf("Required field resp_version missing")
 	}
-	if required.Times == nil {
+	if _, ok := o.UnparsedObject["times"]; required.Times == nil && !ok {
 		return fmt.Errorf("Required field times missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Denominator = all.Denominator
 	o.Interval = all.Interval

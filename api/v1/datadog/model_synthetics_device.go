@@ -24,6 +24,8 @@ type SyntheticsDevice struct {
 	Name string `json:"name"`
 	// Screen width of the device.
 	Width int64 `json:"width"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewSyntheticsDevice instantiates a new SyntheticsDevice object
@@ -177,6 +179,9 @@ func (o *SyntheticsDevice) SetWidth(v int64) {
 
 func (o SyntheticsDevice) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["height"] = o.Height
 	}
@@ -196,6 +201,7 @@ func (o SyntheticsDevice) MarshalJSON() ([]byte, error) {
 }
 
 func (o *SyntheticsDevice) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Height *int64              `json:"height"`
 		Id     *SyntheticsDeviceID `json:"id"`
@@ -209,25 +215,34 @@ func (o *SyntheticsDevice) UnmarshalJSON(bytes []byte) (err error) {
 		Name     string             `json:"name"`
 		Width    int64              `json:"width"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Height == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["height"]; required.Height == nil && !ok {
 		return fmt.Errorf("Required field height missing")
 	}
-	if required.Id == nil {
+	if _, ok := o.UnparsedObject["id"]; required.Id == nil && !ok {
 		return fmt.Errorf("Required field id missing")
 	}
-	if required.Name == nil {
+	if _, ok := o.UnparsedObject["name"]; required.Name == nil && !ok {
 		return fmt.Errorf("Required field name missing")
 	}
-	if required.Width == nil {
+	if _, ok := o.UnparsedObject["width"]; required.Width == nil && !ok {
 		return fmt.Errorf("Required field width missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Id; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Height = all.Height
 	o.Id = all.Id

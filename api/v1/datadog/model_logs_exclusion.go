@@ -20,6 +20,8 @@ type LogsExclusion struct {
 	IsEnabled *bool `json:"is_enabled,omitempty"`
 	// Name of the index exclusion filter.
 	Name string `json:"name"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewLogsExclusion instantiates a new LogsExclusion object
@@ -130,6 +132,9 @@ func (o *LogsExclusion) SetName(v string) {
 
 func (o LogsExclusion) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if o.Filter != nil {
 		toSerialize["filter"] = o.Filter
 	}
@@ -143,6 +148,7 @@ func (o LogsExclusion) MarshalJSON() ([]byte, error) {
 }
 
 func (o *LogsExclusion) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Name *string `json:"name"`
 	}{}
@@ -151,16 +157,21 @@ func (o *LogsExclusion) UnmarshalJSON(bytes []byte) (err error) {
 		IsEnabled *bool                `json:"is_enabled,omitempty"`
 		Name      string               `json:"name"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Name == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["name"]; required.Name == nil && !ok {
 		return fmt.Errorf("Required field name missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Filter = all.Filter
 	o.IsEnabled = all.IsEnabled

@@ -25,6 +25,8 @@ type LogsGrokParser struct {
 	// Name of the log attribute to parse.
 	Source string             `json:"source"`
 	Type   LogsGrokParserType `json:"type"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewLogsGrokParser instantiates a new LogsGrokParser object
@@ -225,6 +227,9 @@ func (o *LogsGrokParser) SetType(v LogsGrokParserType) {
 
 func (o LogsGrokParser) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["grok"] = o.Grok
 	}
@@ -247,6 +252,7 @@ func (o LogsGrokParser) MarshalJSON() ([]byte, error) {
 }
 
 func (o *LogsGrokParser) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Grok   *LogsGrokParserRules `json:"grok"`
 		Source *string              `json:"source"`
@@ -260,22 +266,31 @@ func (o *LogsGrokParser) UnmarshalJSON(bytes []byte) (err error) {
 		Source    string              `json:"source"`
 		Type      LogsGrokParserType  `json:"type"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Grok == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["grok"]; required.Grok == nil && !ok {
 		return fmt.Errorf("Required field grok missing")
 	}
-	if required.Source == nil {
+	if _, ok := o.UnparsedObject["source"]; required.Source == nil && !ok {
 		return fmt.Errorf("Required field source missing")
 	}
-	if required.Type == nil {
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Grok = all.Grok
 	o.IsEnabled = all.IsEnabled

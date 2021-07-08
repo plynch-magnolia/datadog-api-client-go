@@ -26,6 +26,8 @@ type LogsStringBuilderProcessor struct {
 	// A formula with one or more attributes and raw text.
 	Template string                         `json:"template"`
 	Type     LogsStringBuilderProcessorType `json:"type"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewLogsStringBuilderProcessor instantiates a new LogsStringBuilderProcessor object
@@ -228,6 +230,9 @@ func (o *LogsStringBuilderProcessor) SetType(v LogsStringBuilderProcessorType) {
 
 func (o LogsStringBuilderProcessor) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if o.IsEnabled != nil {
 		toSerialize["is_enabled"] = o.IsEnabled
 	}
@@ -250,6 +255,7 @@ func (o LogsStringBuilderProcessor) MarshalJSON() ([]byte, error) {
 }
 
 func (o *LogsStringBuilderProcessor) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Target   *string                         `json:"target"`
 		Template *string                         `json:"template"`
@@ -263,22 +269,31 @@ func (o *LogsStringBuilderProcessor) UnmarshalJSON(bytes []byte) (err error) {
 		Template         string                         `json:"template"`
 		Type             LogsStringBuilderProcessorType `json:"type"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Target == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["target"]; required.Target == nil && !ok {
 		return fmt.Errorf("Required field target missing")
 	}
-	if required.Template == nil {
+	if _, ok := o.UnparsedObject["template"]; required.Template == nil && !ok {
 		return fmt.Errorf("Required field template missing")
 	}
-	if required.Type == nil {
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.IsEnabled = all.IsEnabled
 	o.IsReplaceMissing = all.IsReplaceMissing

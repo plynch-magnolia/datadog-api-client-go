@@ -20,6 +20,8 @@ type FormulaAndFunctionEventQueryGroupBy struct {
 	// Number of groups to return.
 	Limit *int64                                   `json:"limit,omitempty"`
 	Sort  *FormulaAndFunctionEventQueryGroupBySort `json:"sort,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewFormulaAndFunctionEventQueryGroupBy instantiates a new FormulaAndFunctionEventQueryGroupBy object
@@ -130,6 +132,9 @@ func (o *FormulaAndFunctionEventQueryGroupBy) SetSort(v FormulaAndFunctionEventQ
 
 func (o FormulaAndFunctionEventQueryGroupBy) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["facet"] = o.Facet
 	}
@@ -143,6 +148,7 @@ func (o FormulaAndFunctionEventQueryGroupBy) MarshalJSON() ([]byte, error) {
 }
 
 func (o *FormulaAndFunctionEventQueryGroupBy) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Facet *string `json:"facet"`
 	}{}
@@ -151,16 +157,21 @@ func (o *FormulaAndFunctionEventQueryGroupBy) UnmarshalJSON(bytes []byte) (err e
 		Limit *int64                                   `json:"limit,omitempty"`
 		Sort  *FormulaAndFunctionEventQueryGroupBySort `json:"sort,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Facet == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["facet"]; required.Facet == nil && !ok {
 		return fmt.Errorf("Required field facet missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Facet = all.Facet
 	o.Limit = all.Limit

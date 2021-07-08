@@ -22,6 +22,8 @@ type LogsListRequestTime struct {
 	Timezone *string `json:"timezone,omitempty"`
 	// Maximum timestamp for requested logs.
 	To time.Time `json:"to"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewLogsListRequestTime instantiates a new LogsListRequestTime object
@@ -125,6 +127,9 @@ func (o *LogsListRequestTime) SetTo(v time.Time) {
 
 func (o LogsListRequestTime) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["from"] = o.From
 	}
@@ -138,6 +143,7 @@ func (o LogsListRequestTime) MarshalJSON() ([]byte, error) {
 }
 
 func (o *LogsListRequestTime) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		From *time.Time `json:"from"`
 		To   *time.Time `json:"to"`
@@ -147,19 +153,24 @@ func (o *LogsListRequestTime) UnmarshalJSON(bytes []byte) (err error) {
 		Timezone *string   `json:"timezone,omitempty"`
 		To       time.Time `json:"to"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.From == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["from"]; required.From == nil && !ok {
 		return fmt.Errorf("Required field from missing")
 	}
-	if required.To == nil {
+	if _, ok := o.UnparsedObject["to"]; required.To == nil && !ok {
 		return fmt.Errorf("Required field to missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.From = all.From
 	o.Timezone = all.Timezone

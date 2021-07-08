@@ -18,6 +18,8 @@ type NotebookMarkdownCellDefinition struct {
 	// The markdown content.
 	Text string                             `json:"text"`
 	Type NotebookMarkdownCellDefinitionType `json:"type"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewNotebookMarkdownCellDefinition instantiates a new NotebookMarkdownCellDefinition object
@@ -91,6 +93,9 @@ func (o *NotebookMarkdownCellDefinition) SetType(v NotebookMarkdownCellDefinitio
 
 func (o NotebookMarkdownCellDefinition) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["text"] = o.Text
 	}
@@ -101,6 +106,7 @@ func (o NotebookMarkdownCellDefinition) MarshalJSON() ([]byte, error) {
 }
 
 func (o *NotebookMarkdownCellDefinition) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Text *string                             `json:"text"`
 		Type *NotebookMarkdownCellDefinitionType `json:"type"`
@@ -109,19 +115,28 @@ func (o *NotebookMarkdownCellDefinition) UnmarshalJSON(bytes []byte) (err error)
 		Text string                             `json:"text"`
 		Type NotebookMarkdownCellDefinitionType `json:"type"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Text == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["text"]; required.Text == nil && !ok {
 		return fmt.Errorf("Required field text missing")
 	}
-	if required.Type == nil {
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Text = all.Text
 	o.Type = all.Type

@@ -17,6 +17,8 @@ import (
 type IncidentTeamUpdateAttributes struct {
 	// Name of the incident team.
 	Name string `json:"name"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewIncidentTeamUpdateAttributes instantiates a new IncidentTeamUpdateAttributes object
@@ -63,6 +65,9 @@ func (o *IncidentTeamUpdateAttributes) SetName(v string) {
 
 func (o IncidentTeamUpdateAttributes) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["name"] = o.Name
 	}
@@ -70,22 +75,28 @@ func (o IncidentTeamUpdateAttributes) MarshalJSON() ([]byte, error) {
 }
 
 func (o *IncidentTeamUpdateAttributes) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Name *string `json:"name"`
 	}{}
 	all := struct {
 		Name string `json:"name"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Name == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["name"]; required.Name == nil && !ok {
 		return fmt.Errorf("Required field name missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Name = all.Name
 	return nil

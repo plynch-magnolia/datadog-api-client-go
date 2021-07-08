@@ -26,6 +26,8 @@ type LogsIndex struct {
 	Name string `json:"name"`
 	// The number of days before logs are deleted from this index. Available values depend on retention plans specified in your organization's contract/subscriptions.
 	NumRetentionDays *int64 `json:"num_retention_days,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewLogsIndex instantiates a new LogsIndex object
@@ -225,6 +227,9 @@ func (o *LogsIndex) SetNumRetentionDays(v int64) {
 
 func (o LogsIndex) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if o.DailyLimit != nil {
 		toSerialize["daily_limit"] = o.DailyLimit
 	}
@@ -247,6 +252,7 @@ func (o LogsIndex) MarshalJSON() ([]byte, error) {
 }
 
 func (o *LogsIndex) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Filter *LogsFilter `json:"filter"`
 		Name   *string     `json:"name"`
@@ -259,19 +265,24 @@ func (o *LogsIndex) UnmarshalJSON(bytes []byte) (err error) {
 		Name             string           `json:"name"`
 		NumRetentionDays *int64           `json:"num_retention_days,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Filter == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["filter"]; required.Filter == nil && !ok {
 		return fmt.Errorf("Required field filter missing")
 	}
-	if required.Name == nil {
+	if _, ok := o.UnparsedObject["name"]; required.Name == nil && !ok {
 		return fmt.Errorf("Required field name missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.DailyLimit = all.DailyLimit
 	o.ExclusionFilters = all.ExclusionFilters

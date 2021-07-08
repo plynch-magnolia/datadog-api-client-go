@@ -19,6 +19,8 @@ type NotebookResponseData struct {
 	// Unique notebook ID, assigned when you create the notebook.
 	Id   int64                `json:"id"`
 	Type NotebookResourceType `json:"type"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewNotebookResponseData instantiates a new NotebookResponseData object
@@ -117,6 +119,9 @@ func (o *NotebookResponseData) SetType(v NotebookResourceType) {
 
 func (o NotebookResponseData) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["attributes"] = o.Attributes
 	}
@@ -130,6 +135,7 @@ func (o NotebookResponseData) MarshalJSON() ([]byte, error) {
 }
 
 func (o *NotebookResponseData) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Attributes *NotebookResponseDataAttributes `json:"attributes"`
 		Id         *int64                          `json:"id"`
@@ -140,22 +146,31 @@ func (o *NotebookResponseData) UnmarshalJSON(bytes []byte) (err error) {
 		Id         int64                          `json:"id"`
 		Type       NotebookResourceType           `json:"type"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Attributes == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["attributes"]; required.Attributes == nil && !ok {
 		return fmt.Errorf("Required field attributes missing")
 	}
-	if required.Id == nil {
+	if _, ok := o.UnparsedObject["id"]; required.Id == nil && !ok {
 		return fmt.Errorf("Required field id missing")
 	}
-	if required.Type == nil {
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Attributes = all.Attributes
 	o.Id = all.Id

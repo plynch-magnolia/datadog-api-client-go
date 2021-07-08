@@ -23,6 +23,8 @@ type FreeTextWidgetDefinition struct {
 	Text      string                       `json:"text"`
 	TextAlign *WidgetTextAlign             `json:"text_align,omitempty"`
 	Type      FreeTextWidgetDefinitionType `json:"type"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewFreeTextWidgetDefinition instantiates a new FreeTextWidgetDefinition object
@@ -192,6 +194,9 @@ func (o *FreeTextWidgetDefinition) SetType(v FreeTextWidgetDefinitionType) {
 
 func (o FreeTextWidgetDefinition) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if o.Color != nil {
 		toSerialize["color"] = o.Color
 	}
@@ -211,6 +216,7 @@ func (o FreeTextWidgetDefinition) MarshalJSON() ([]byte, error) {
 }
 
 func (o *FreeTextWidgetDefinition) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Text *string                       `json:"text"`
 		Type *FreeTextWidgetDefinitionType `json:"type"`
@@ -222,19 +228,32 @@ func (o *FreeTextWidgetDefinition) UnmarshalJSON(bytes []byte) (err error) {
 		TextAlign *WidgetTextAlign             `json:"text_align,omitempty"`
 		Type      FreeTextWidgetDefinitionType `json:"type"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Text == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["text"]; required.Text == nil && !ok {
 		return fmt.Errorf("Required field text missing")
 	}
-	if required.Type == nil {
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.TextAlign; v != nil && !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Color = all.Color
 	o.FontSize = all.FontSize

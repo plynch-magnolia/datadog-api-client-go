@@ -25,6 +25,8 @@ type LogsArchiveDestinationAzure struct {
 	// The associated storage account.
 	StorageAccount string                          `json:"storage_account"`
 	Type           LogsArchiveDestinationAzureType `json:"type"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewLogsArchiveDestinationAzure instantiates a new LogsArchiveDestinationAzure object
@@ -212,6 +214,9 @@ func (o *LogsArchiveDestinationAzure) SetType(v LogsArchiveDestinationAzureType)
 
 func (o LogsArchiveDestinationAzure) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["container"] = o.Container
 	}
@@ -234,6 +239,7 @@ func (o LogsArchiveDestinationAzure) MarshalJSON() ([]byte, error) {
 }
 
 func (o *LogsArchiveDestinationAzure) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Container      *string                          `json:"container"`
 		Integration    *LogsArchiveIntegrationAzure     `json:"integration"`
@@ -248,25 +254,34 @@ func (o *LogsArchiveDestinationAzure) UnmarshalJSON(bytes []byte) (err error) {
 		StorageAccount string                          `json:"storage_account"`
 		Type           LogsArchiveDestinationAzureType `json:"type"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Container == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["container"]; required.Container == nil && !ok {
 		return fmt.Errorf("Required field container missing")
 	}
-	if required.Integration == nil {
+	if _, ok := o.UnparsedObject["integration"]; required.Integration == nil && !ok {
 		return fmt.Errorf("Required field integration missing")
 	}
-	if required.StorageAccount == nil {
+	if _, ok := o.UnparsedObject["storage_account"]; required.StorageAccount == nil && !ok {
 		return fmt.Errorf("Required field storage_account missing")
 	}
-	if required.Type == nil {
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Container = all.Container
 	o.Integration = all.Integration

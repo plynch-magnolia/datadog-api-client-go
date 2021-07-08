@@ -18,6 +18,8 @@ type RoleCreateData struct {
 	Attributes    RoleCreateAttributes `json:"attributes"`
 	Relationships *RoleRelationships   `json:"relationships,omitempty"`
 	Type          *RolesType           `json:"type,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewRoleCreateData instantiates a new RoleCreateData object
@@ -132,6 +134,9 @@ func (o *RoleCreateData) SetType(v RolesType) {
 
 func (o RoleCreateData) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["attributes"] = o.Attributes
 	}
@@ -145,6 +150,7 @@ func (o RoleCreateData) MarshalJSON() ([]byte, error) {
 }
 
 func (o *RoleCreateData) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Attributes *RoleCreateAttributes `json:"attributes"`
 	}{}
@@ -153,16 +159,25 @@ func (o *RoleCreateData) UnmarshalJSON(bytes []byte) (err error) {
 		Relationships *RoleRelationships   `json:"relationships,omitempty"`
 		Type          *RolesType           `json:"type,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Attributes == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["attributes"]; required.Attributes == nil && !ok {
 		return fmt.Errorf("Required field attributes missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; v != nil && !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Attributes = all.Attributes
 	o.Relationships = all.Relationships

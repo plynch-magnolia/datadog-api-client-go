@@ -19,6 +19,8 @@ type AWSAccountAndLambdaRequest struct {
 	AccountId string `json:"account_id"`
 	// ARN of the Datadog Lambda created during the Datadog-Amazon Web services Log collection setup.
 	LambdaArn string `json:"lambda_arn"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewAWSAccountAndLambdaRequest instantiates a new AWSAccountAndLambdaRequest object
@@ -90,6 +92,9 @@ func (o *AWSAccountAndLambdaRequest) SetLambdaArn(v string) {
 
 func (o AWSAccountAndLambdaRequest) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["account_id"] = o.AccountId
 	}
@@ -100,6 +105,7 @@ func (o AWSAccountAndLambdaRequest) MarshalJSON() ([]byte, error) {
 }
 
 func (o *AWSAccountAndLambdaRequest) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		AccountId *string `json:"account_id"`
 		LambdaArn *string `json:"lambda_arn"`
@@ -108,19 +114,24 @@ func (o *AWSAccountAndLambdaRequest) UnmarshalJSON(bytes []byte) (err error) {
 		AccountId string `json:"account_id"`
 		LambdaArn string `json:"lambda_arn"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.AccountId == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["account_id"]; required.AccountId == nil && !ok {
 		return fmt.Errorf("Required field account_id missing")
 	}
-	if required.LambdaArn == nil {
+	if _, ok := o.UnparsedObject["lambda_arn"]; required.LambdaArn == nil && !ok {
 		return fmt.Errorf("Required field lambda_arn missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.AccountId = all.AccountId
 	o.LambdaArn = all.LambdaArn

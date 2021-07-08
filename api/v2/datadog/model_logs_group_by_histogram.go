@@ -21,6 +21,8 @@ type LogsGroupByHistogram struct {
 	Max float64 `json:"max"`
 	// The minimum value for the measure used in the histogram (values smaller than this one are filtered out)
 	Min float64 `json:"min"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewLogsGroupByHistogram instantiates a new LogsGroupByHistogram object
@@ -117,6 +119,9 @@ func (o *LogsGroupByHistogram) SetMin(v float64) {
 
 func (o LogsGroupByHistogram) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["interval"] = o.Interval
 	}
@@ -130,6 +135,7 @@ func (o LogsGroupByHistogram) MarshalJSON() ([]byte, error) {
 }
 
 func (o *LogsGroupByHistogram) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Interval *float64 `json:"interval"`
 		Max      *float64 `json:"max"`
@@ -140,22 +146,27 @@ func (o *LogsGroupByHistogram) UnmarshalJSON(bytes []byte) (err error) {
 		Max      float64 `json:"max"`
 		Min      float64 `json:"min"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Interval == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["interval"]; required.Interval == nil && !ok {
 		return fmt.Errorf("Required field interval missing")
 	}
-	if required.Max == nil {
+	if _, ok := o.UnparsedObject["max"]; required.Max == nil && !ok {
 		return fmt.Errorf("Required field max missing")
 	}
-	if required.Min == nil {
+	if _, ok := o.UnparsedObject["min"]; required.Min == nil && !ok {
 		return fmt.Errorf("Required field min missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Interval = all.Interval
 	o.Max = all.Max

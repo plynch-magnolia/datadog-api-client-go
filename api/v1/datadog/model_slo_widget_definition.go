@@ -32,6 +32,8 @@ type SLOWidgetDefinition struct {
 	ViewMode  *WidgetViewMode         `json:"view_mode,omitempty"`
 	// Type of view displayed by the widget.
 	ViewType string `json:"view_type"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewSLOWidgetDefinition instantiates a new SLOWidgetDefinition object
@@ -363,6 +365,9 @@ func (o *SLOWidgetDefinition) SetViewType(v string) {
 
 func (o SLOWidgetDefinition) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if o.GlobalTimeTarget != nil {
 		toSerialize["global_time_target"] = o.GlobalTimeTarget
 	}
@@ -397,6 +402,7 @@ func (o SLOWidgetDefinition) MarshalJSON() ([]byte, error) {
 }
 
 func (o *SLOWidgetDefinition) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Type     *SLOWidgetDefinitionType `json:"type"`
 		ViewType *string                  `json:"view_type"`
@@ -413,19 +419,36 @@ func (o *SLOWidgetDefinition) UnmarshalJSON(bytes []byte) (err error) {
 		ViewMode         *WidgetViewMode         `json:"view_mode,omitempty"`
 		ViewType         string                  `json:"view_type"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Type == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
-	if required.ViewType == nil {
+	if _, ok := o.UnparsedObject["view_type"]; required.ViewType == nil && !ok {
 		return fmt.Errorf("Required field view_type missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.TitleAlign; v != nil && !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.ViewMode; v != nil && !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.GlobalTimeTarget = all.GlobalTimeTarget
 	o.ShowErrorBudget = all.ShowErrorBudget

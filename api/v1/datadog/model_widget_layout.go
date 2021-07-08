@@ -25,6 +25,8 @@ type WidgetLayout struct {
 	X int64 `json:"x"`
 	// The position of the widget on the y (vertical) axis. Should be a non-negative integer.
 	Y int64 `json:"y"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewWidgetLayout instantiates a new WidgetLayout object
@@ -178,6 +180,9 @@ func (o *WidgetLayout) SetY(v int64) {
 
 func (o WidgetLayout) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["height"] = o.Height
 	}
@@ -197,6 +202,7 @@ func (o WidgetLayout) MarshalJSON() ([]byte, error) {
 }
 
 func (o *WidgetLayout) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Height *int64 `json:"height"`
 		Width  *int64 `json:"width"`
@@ -210,25 +216,30 @@ func (o *WidgetLayout) UnmarshalJSON(bytes []byte) (err error) {
 		X             int64 `json:"x"`
 		Y             int64 `json:"y"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Height == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["height"]; required.Height == nil && !ok {
 		return fmt.Errorf("Required field height missing")
 	}
-	if required.Width == nil {
+	if _, ok := o.UnparsedObject["width"]; required.Width == nil && !ok {
 		return fmt.Errorf("Required field width missing")
 	}
-	if required.X == nil {
+	if _, ok := o.UnparsedObject["x"]; required.X == nil && !ok {
 		return fmt.Errorf("Required field x missing")
 	}
-	if required.Y == nil {
+	if _, ok := o.UnparsedObject["y"]; required.Y == nil && !ok {
 		return fmt.Errorf("Required field y missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Height = all.Height
 	o.IsColumnBreak = all.IsColumnBreak

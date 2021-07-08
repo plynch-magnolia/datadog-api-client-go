@@ -17,6 +17,8 @@ import (
 type LogsMetricUpdateData struct {
 	Attributes LogsMetricUpdateAttributes `json:"attributes"`
 	Type       LogsMetricType             `json:"type"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewLogsMetricUpdateData instantiates a new LogsMetricUpdateData object
@@ -90,6 +92,9 @@ func (o *LogsMetricUpdateData) SetType(v LogsMetricType) {
 
 func (o LogsMetricUpdateData) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["attributes"] = o.Attributes
 	}
@@ -100,6 +105,7 @@ func (o LogsMetricUpdateData) MarshalJSON() ([]byte, error) {
 }
 
 func (o *LogsMetricUpdateData) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Attributes *LogsMetricUpdateAttributes `json:"attributes"`
 		Type       *LogsMetricType             `json:"type"`
@@ -108,19 +114,28 @@ func (o *LogsMetricUpdateData) UnmarshalJSON(bytes []byte) (err error) {
 		Attributes LogsMetricUpdateAttributes `json:"attributes"`
 		Type       LogsMetricType             `json:"type"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Attributes == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["attributes"]; required.Attributes == nil && !ok {
 		return fmt.Errorf("Required field attributes missing")
 	}
-	if required.Type == nil {
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Attributes = all.Attributes
 	o.Type = all.Type

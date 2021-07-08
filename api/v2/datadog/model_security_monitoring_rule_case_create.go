@@ -22,6 +22,8 @@ type SecurityMonitoringRuleCaseCreate struct {
 	// Notification targets for each rule case.
 	Notifications *[]string                      `json:"notifications,omitempty"`
 	Status        SecurityMonitoringRuleSeverity `json:"status"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewSecurityMonitoringRuleCaseCreate instantiates a new SecurityMonitoringRuleCaseCreate object
@@ -164,6 +166,9 @@ func (o *SecurityMonitoringRuleCaseCreate) SetStatus(v SecurityMonitoringRuleSev
 
 func (o SecurityMonitoringRuleCaseCreate) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if o.Condition != nil {
 		toSerialize["condition"] = o.Condition
 	}
@@ -180,6 +185,7 @@ func (o SecurityMonitoringRuleCaseCreate) MarshalJSON() ([]byte, error) {
 }
 
 func (o *SecurityMonitoringRuleCaseCreate) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Status *SecurityMonitoringRuleSeverity `json:"status"`
 	}{}
@@ -189,16 +195,25 @@ func (o *SecurityMonitoringRuleCaseCreate) UnmarshalJSON(bytes []byte) (err erro
 		Notifications *[]string                      `json:"notifications,omitempty"`
 		Status        SecurityMonitoringRuleSeverity `json:"status"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Status == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["status"]; required.Status == nil && !ok {
 		return fmt.Errorf("Required field status missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Status; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Condition = all.Condition
 	o.Name = all.Name

@@ -23,6 +23,8 @@ type LogsGroupBy struct {
 	Missing *LogsGroupByMissing `json:"missing,omitempty"`
 	Sort    *LogsAggregateSort  `json:"sort,omitempty"`
 	Total   *LogsGroupByTotal   `json:"total,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewLogsGroupBy instantiates a new LogsGroupBy object
@@ -233,6 +235,9 @@ func (o *LogsGroupBy) SetTotal(v LogsGroupByTotal) {
 
 func (o LogsGroupBy) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["facet"] = o.Facet
 	}
@@ -255,6 +260,7 @@ func (o LogsGroupBy) MarshalJSON() ([]byte, error) {
 }
 
 func (o *LogsGroupBy) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Facet *string `json:"facet"`
 	}{}
@@ -266,16 +272,21 @@ func (o *LogsGroupBy) UnmarshalJSON(bytes []byte) (err error) {
 		Sort      *LogsAggregateSort    `json:"sort,omitempty"`
 		Total     *LogsGroupByTotal     `json:"total,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Facet == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["facet"]; required.Facet == nil && !ok {
 		return fmt.Errorf("Required field facet missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Facet = all.Facet
 	o.Histogram = all.Histogram

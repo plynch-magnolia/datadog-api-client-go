@@ -44,6 +44,8 @@ type Dashboard struct {
 	Url *string `json:"url,omitempty"`
 	// List of widgets to display on the dashboard.
 	Widgets []Widget `json:"widgets"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewDashboard instantiates a new Dashboard object
@@ -542,6 +544,9 @@ func (o *Dashboard) SetWidgets(v []Widget) {
 
 func (o Dashboard) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if o.AuthorHandle != nil {
 		toSerialize["author_handle"] = o.AuthorHandle
 	}
@@ -591,6 +596,7 @@ func (o Dashboard) MarshalJSON() ([]byte, error) {
 }
 
 func (o *Dashboard) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		LayoutType *DashboardLayoutType `json:"layout_type"`
 		Title      *string              `json:"title"`
@@ -613,22 +619,35 @@ func (o *Dashboard) UnmarshalJSON(bytes []byte) (err error) {
 		Url                     *string                           `json:"url,omitempty"`
 		Widgets                 []Widget                          `json:"widgets"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.LayoutType == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["layout_type"]; required.LayoutType == nil && !ok {
 		return fmt.Errorf("Required field layout_type missing")
 	}
-	if required.Title == nil {
+	if _, ok := o.UnparsedObject["title"]; required.Title == nil && !ok {
 		return fmt.Errorf("Required field title missing")
 	}
-	if required.Widgets == nil {
+	if _, ok := o.UnparsedObject["widgets"]; required.Widgets == nil && !ok {
 		return fmt.Errorf("Required field widgets missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.LayoutType; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.ReflowType; v != nil && !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.AuthorHandle = all.AuthorHandle
 	o.CreatedAt = all.CreatedAt

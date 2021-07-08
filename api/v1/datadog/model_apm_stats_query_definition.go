@@ -28,6 +28,8 @@ type ApmStatsQueryDefinition struct {
 	RowType  ApmStatsQueryRowType `json:"row_type"`
 	// Service name.
 	Service string `json:"service"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewApmStatsQueryDefinition instantiates a new ApmStatsQueryDefinition object
@@ -238,6 +240,9 @@ func (o *ApmStatsQueryDefinition) SetService(v string) {
 
 func (o ApmStatsQueryDefinition) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if o.Columns != nil {
 		toSerialize["columns"] = o.Columns
 	}
@@ -263,6 +268,7 @@ func (o ApmStatsQueryDefinition) MarshalJSON() ([]byte, error) {
 }
 
 func (o *ApmStatsQueryDefinition) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Env        *string               `json:"env"`
 		Name       *string               `json:"name"`
@@ -279,28 +285,37 @@ func (o *ApmStatsQueryDefinition) UnmarshalJSON(bytes []byte) (err error) {
 		RowType    ApmStatsQueryRowType       `json:"row_type"`
 		Service    string                     `json:"service"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Env == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["env"]; required.Env == nil && !ok {
 		return fmt.Errorf("Required field env missing")
 	}
-	if required.Name == nil {
+	if _, ok := o.UnparsedObject["name"]; required.Name == nil && !ok {
 		return fmt.Errorf("Required field name missing")
 	}
-	if required.PrimaryTag == nil {
+	if _, ok := o.UnparsedObject["primary_tag"]; required.PrimaryTag == nil && !ok {
 		return fmt.Errorf("Required field primary_tag missing")
 	}
-	if required.RowType == nil {
+	if _, ok := o.UnparsedObject["row_type"]; required.RowType == nil && !ok {
 		return fmt.Errorf("Required field row_type missing")
 	}
-	if required.Service == nil {
+	if _, ok := o.UnparsedObject["service"]; required.Service == nil && !ok {
 		return fmt.Errorf("Required field service missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.RowType; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Columns = all.Columns
 	o.Env = all.Env

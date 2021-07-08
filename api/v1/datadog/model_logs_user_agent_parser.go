@@ -26,6 +26,8 @@ type LogsUserAgentParser struct {
 	// Name of the parent attribute that contains all the extracted details from the `sources`.
 	Target string                  `json:"target"`
 	Type   LogsUserAgentParserType `json:"type"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewLogsUserAgentParser instantiates a new LogsUserAgentParser object
@@ -230,6 +232,9 @@ func (o *LogsUserAgentParser) SetType(v LogsUserAgentParserType) {
 
 func (o LogsUserAgentParser) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if o.IsEnabled != nil {
 		toSerialize["is_enabled"] = o.IsEnabled
 	}
@@ -252,6 +257,7 @@ func (o LogsUserAgentParser) MarshalJSON() ([]byte, error) {
 }
 
 func (o *LogsUserAgentParser) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Sources *[]string                `json:"sources"`
 		Target  *string                  `json:"target"`
@@ -265,22 +271,31 @@ func (o *LogsUserAgentParser) UnmarshalJSON(bytes []byte) (err error) {
 		Target    string                  `json:"target"`
 		Type      LogsUserAgentParserType `json:"type"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Sources == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["sources"]; required.Sources == nil && !ok {
 		return fmt.Errorf("Required field sources missing")
 	}
-	if required.Target == nil {
+	if _, ok := o.UnparsedObject["target"]; required.Target == nil && !ok {
 		return fmt.Errorf("Required field target missing")
 	}
-	if required.Type == nil {
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.IsEnabled = all.IsEnabled
 	o.IsEncoded = all.IsEncoded

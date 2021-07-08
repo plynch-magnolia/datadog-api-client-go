@@ -22,6 +22,8 @@ type SyntheticsBrowserTestConfig struct {
 	SetCookie *string `json:"setCookie,omitempty"`
 	// Array of variables used for the test steps.
 	Variables *[]SyntheticsBrowserVariable `json:"variables,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewSyntheticsBrowserTestConfig instantiates a new SyntheticsBrowserTestConfig object
@@ -157,6 +159,9 @@ func (o *SyntheticsBrowserTestConfig) SetVariables(v []SyntheticsBrowserVariable
 
 func (o SyntheticsBrowserTestConfig) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["assertions"] = o.Assertions
 	}
@@ -173,6 +178,7 @@ func (o SyntheticsBrowserTestConfig) MarshalJSON() ([]byte, error) {
 }
 
 func (o *SyntheticsBrowserTestConfig) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Assertions *[]SyntheticsAssertion `json:"assertions"`
 		Request    *SyntheticsTestRequest `json:"request"`
@@ -183,19 +189,24 @@ func (o *SyntheticsBrowserTestConfig) UnmarshalJSON(bytes []byte) (err error) {
 		SetCookie  *string                      `json:"setCookie,omitempty"`
 		Variables  *[]SyntheticsBrowserVariable `json:"variables,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Assertions == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["assertions"]; required.Assertions == nil && !ok {
 		return fmt.Errorf("Required field assertions missing")
 	}
-	if required.Request == nil {
+	if _, ok := o.UnparsedObject["request"]; required.Request == nil && !ok {
 		return fmt.Errorf("Required field request missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Assertions = all.Assertions
 	o.Request = all.Request

@@ -30,6 +30,8 @@ type FormulaAndFunctionProcessQueryDefinition struct {
 	TagFilters *[]string `json:"tag_filters,omitempty"`
 	// Text to use as filter.
 	TextFilter *string `json:"text_filter,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewFormulaAndFunctionProcessQueryDefinition instantiates a new FormulaAndFunctionProcessQueryDefinition object
@@ -322,6 +324,9 @@ func (o *FormulaAndFunctionProcessQueryDefinition) SetTextFilter(v string) {
 
 func (o FormulaAndFunctionProcessQueryDefinition) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if o.Aggregator != nil {
 		toSerialize["aggregator"] = o.Aggregator
 	}
@@ -353,6 +358,7 @@ func (o FormulaAndFunctionProcessQueryDefinition) MarshalJSON() ([]byte, error) 
 }
 
 func (o *FormulaAndFunctionProcessQueryDefinition) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		DataSource *FormulaAndFunctionProcessQueryDataSource `json:"data_source"`
 		Metric     *string                                   `json:"metric"`
@@ -369,22 +375,39 @@ func (o *FormulaAndFunctionProcessQueryDefinition) UnmarshalJSON(bytes []byte) (
 		TagFilters      *[]string                                `json:"tag_filters,omitempty"`
 		TextFilter      *string                                  `json:"text_filter,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.DataSource == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["data_source"]; required.DataSource == nil && !ok {
 		return fmt.Errorf("Required field data_source missing")
 	}
-	if required.Metric == nil {
+	if _, ok := o.UnparsedObject["metric"]; required.Metric == nil && !ok {
 		return fmt.Errorf("Required field metric missing")
 	}
-	if required.Name == nil {
+	if _, ok := o.UnparsedObject["name"]; required.Name == nil && !ok {
 		return fmt.Errorf("Required field name missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Aggregator; v != nil && !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.DataSource; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Sort; v != nil && !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Aggregator = all.Aggregator
 	o.DataSource = all.DataSource

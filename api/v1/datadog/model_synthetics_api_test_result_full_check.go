@@ -16,6 +16,8 @@ import (
 // SyntheticsAPITestResultFullCheck Object describing the API test configuration.
 type SyntheticsAPITestResultFullCheck struct {
 	Config SyntheticsTestConfig `json:"config"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewSyntheticsAPITestResultFullCheck instantiates a new SyntheticsAPITestResultFullCheck object
@@ -62,6 +64,9 @@ func (o *SyntheticsAPITestResultFullCheck) SetConfig(v SyntheticsTestConfig) {
 
 func (o SyntheticsAPITestResultFullCheck) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["config"] = o.Config
 	}
@@ -69,22 +74,28 @@ func (o SyntheticsAPITestResultFullCheck) MarshalJSON() ([]byte, error) {
 }
 
 func (o *SyntheticsAPITestResultFullCheck) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Config *SyntheticsTestConfig `json:"config"`
 	}{}
 	all := struct {
 		Config SyntheticsTestConfig `json:"config"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Config == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["config"]; required.Config == nil && !ok {
 		return fmt.Errorf("Required field config missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Config = all.Config
 	return nil

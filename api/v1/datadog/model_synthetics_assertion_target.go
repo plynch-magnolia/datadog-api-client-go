@@ -21,6 +21,8 @@ type SyntheticsAssertionTarget struct {
 	// Value used by the operator.
 	Target *interface{}            `json:"target,omitempty"`
 	Type   SyntheticsAssertionType `json:"type"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewSyntheticsAssertionTarget instantiates a new SyntheticsAssertionTarget object
@@ -156,6 +158,9 @@ func (o *SyntheticsAssertionTarget) SetType(v SyntheticsAssertionType) {
 
 func (o SyntheticsAssertionTarget) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["operator"] = o.Operator
 	}
@@ -172,6 +177,7 @@ func (o SyntheticsAssertionTarget) MarshalJSON() ([]byte, error) {
 }
 
 func (o *SyntheticsAssertionTarget) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Operator *SyntheticsAssertionOperator `json:"operator"`
 		Type     *SyntheticsAssertionType     `json:"type"`
@@ -182,19 +188,32 @@ func (o *SyntheticsAssertionTarget) UnmarshalJSON(bytes []byte) (err error) {
 		Target   *interface{}                `json:"target,omitempty"`
 		Type     SyntheticsAssertionType     `json:"type"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Operator == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["operator"]; required.Operator == nil && !ok {
 		return fmt.Errorf("Required field operator missing")
 	}
-	if required.Type == nil {
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Operator; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Operator = all.Operator
 	o.Property = all.Property

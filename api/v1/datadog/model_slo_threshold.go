@@ -24,6 +24,8 @@ type SLOThreshold struct {
 	Warning *float64 `json:"warning,omitempty"`
 	// A string representation of the warning target (see the description of the `target_display` field for details).  Included in service level objective responses if a warning target exists. Ignored in create/update requests.
 	WarningDisplay *string `json:"warning_display,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewSLOThreshold instantiates a new SLOThreshold object
@@ -191,6 +193,9 @@ func (o *SLOThreshold) SetWarningDisplay(v string) {
 
 func (o SLOThreshold) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["target"] = o.Target
 	}
@@ -210,6 +215,7 @@ func (o SLOThreshold) MarshalJSON() ([]byte, error) {
 }
 
 func (o *SLOThreshold) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Target    *float64      `json:"target"`
 		Timeframe *SLOTimeframe `json:"timeframe"`
@@ -221,19 +227,28 @@ func (o *SLOThreshold) UnmarshalJSON(bytes []byte) (err error) {
 		Warning        *float64     `json:"warning,omitempty"`
 		WarningDisplay *string      `json:"warning_display,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Target == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["target"]; required.Target == nil && !ok {
 		return fmt.Errorf("Required field target missing")
 	}
-	if required.Timeframe == nil {
+	if _, ok := o.UnparsedObject["timeframe"]; required.Timeframe == nil && !ok {
 		return fmt.Errorf("Required field timeframe missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Timeframe; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Target = all.Target
 	o.TargetDisplay = all.TargetDisplay

@@ -23,6 +23,8 @@ type TreeMapWidgetDefinition struct {
 	// Title of your widget.
 	Title *string                     `json:"title,omitempty"`
 	Type  TreeMapWidgetDefinitionType `json:"type"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewTreeMapWidgetDefinition instantiates a new TreeMapWidgetDefinition object
@@ -205,6 +207,9 @@ func (o *TreeMapWidgetDefinition) SetType(v TreeMapWidgetDefinitionType) {
 
 func (o TreeMapWidgetDefinition) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["color_by"] = o.ColorBy
 	}
@@ -227,6 +232,7 @@ func (o TreeMapWidgetDefinition) MarshalJSON() ([]byte, error) {
 }
 
 func (o *TreeMapWidgetDefinition) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		ColorBy  *TreeMapColorBy              `json:"color_by"`
 		GroupBy  *TreeMapGroupBy              `json:"group_by"`
@@ -242,28 +248,49 @@ func (o *TreeMapWidgetDefinition) UnmarshalJSON(bytes []byte) (err error) {
 		Title    *string                     `json:"title,omitempty"`
 		Type     TreeMapWidgetDefinitionType `json:"type"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.ColorBy == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["color_by"]; required.ColorBy == nil && !ok {
 		return fmt.Errorf("Required field color_by missing")
 	}
-	if required.GroupBy == nil {
+	if _, ok := o.UnparsedObject["group_by"]; required.GroupBy == nil && !ok {
 		return fmt.Errorf("Required field group_by missing")
 	}
-	if required.Requests == nil {
+	if _, ok := o.UnparsedObject["requests"]; required.Requests == nil && !ok {
 		return fmt.Errorf("Required field requests missing")
 	}
-	if required.SizeBy == nil {
+	if _, ok := o.UnparsedObject["size_by"]; required.SizeBy == nil && !ok {
 		return fmt.Errorf("Required field size_by missing")
 	}
-	if required.Type == nil {
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.ColorBy; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.GroupBy; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.SizeBy; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.ColorBy = all.ColorBy
 	o.GroupBy = all.GroupBy

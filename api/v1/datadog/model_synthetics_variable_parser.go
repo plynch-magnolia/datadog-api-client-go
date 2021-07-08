@@ -18,6 +18,8 @@ type SyntheticsVariableParser struct {
 	Type SyntheticsGlobalVariableParserType `json:"type"`
 	// Regex or JSON path used for the parser. Not used with type `raw`.
 	Value *string `json:"value,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewSyntheticsVariableParser instantiates a new SyntheticsVariableParser object
@@ -96,6 +98,9 @@ func (o *SyntheticsVariableParser) SetValue(v string) {
 
 func (o SyntheticsVariableParser) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["type"] = o.Type
 	}
@@ -106,6 +111,7 @@ func (o SyntheticsVariableParser) MarshalJSON() ([]byte, error) {
 }
 
 func (o *SyntheticsVariableParser) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Type *SyntheticsGlobalVariableParserType `json:"type"`
 	}{}
@@ -113,16 +119,25 @@ func (o *SyntheticsVariableParser) UnmarshalJSON(bytes []byte) (err error) {
 		Type  SyntheticsGlobalVariableParserType `json:"type"`
 		Value *string                            `json:"value,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Type == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["type"]; required.Type == nil && !ok {
 		return fmt.Errorf("Required field type missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Type; !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Type = all.Type
 	o.Value = all.Value

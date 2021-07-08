@@ -21,6 +21,8 @@ type ApmStatsQueryColumnType struct {
 	// Column name.
 	Name  string      `json:"name"`
 	Order *WidgetSort `json:"order,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewApmStatsQueryColumnType instantiates a new ApmStatsQueryColumnType object
@@ -163,6 +165,9 @@ func (o *ApmStatsQueryColumnType) SetOrder(v WidgetSort) {
 
 func (o ApmStatsQueryColumnType) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if o.Alias != nil {
 		toSerialize["alias"] = o.Alias
 	}
@@ -179,6 +184,7 @@ func (o ApmStatsQueryColumnType) MarshalJSON() ([]byte, error) {
 }
 
 func (o *ApmStatsQueryColumnType) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Name *string `json:"name"`
 	}{}
@@ -188,16 +194,29 @@ func (o *ApmStatsQueryColumnType) UnmarshalJSON(bytes []byte) (err error) {
 		Name            string                      `json:"name"`
 		Order           *WidgetSort                 `json:"order,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Name == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["name"]; required.Name == nil && !ok {
 		return fmt.Errorf("Required field name missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.CellDisplayMode; v != nil && !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.Order; v != nil && !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Alias = all.Alias
 	o.CellDisplayMode = all.CellDisplayMode

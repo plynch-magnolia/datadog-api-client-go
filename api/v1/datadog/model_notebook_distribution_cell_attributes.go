@@ -19,6 +19,8 @@ type NotebookDistributionCellAttributes struct {
 	GraphSize  *NotebookGraphSize           `json:"graph_size,omitempty"`
 	SplitBy    *NotebookSplitBy             `json:"split_by,omitempty"`
 	Time       NullableNotebookCellTime     `json:"time,omitempty"`
+	// UnparsedObject contains the raw value of the object if there was an error when deserializing into the struct
+	UnparsedObject map[string]interface{} `json:-`
 }
 
 // NewNotebookDistributionCellAttributes instantiates a new NotebookDistributionCellAttributes object
@@ -172,6 +174,9 @@ func (o *NotebookDistributionCellAttributes) UnsetTime() {
 
 func (o NotebookDistributionCellAttributes) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
+	if o.UnparsedObject != nil {
+		return json.Marshal(o.UnparsedObject)
+	}
 	if true {
 		toSerialize["definition"] = o.Definition
 	}
@@ -188,6 +193,7 @@ func (o NotebookDistributionCellAttributes) MarshalJSON() ([]byte, error) {
 }
 
 func (o *NotebookDistributionCellAttributes) UnmarshalJSON(bytes []byte) (err error) {
+	raw := map[string]interface{}{}
 	required := struct {
 		Definition *DistributionWidgetDefinition `json:"definition"`
 	}{}
@@ -197,16 +203,25 @@ func (o *NotebookDistributionCellAttributes) UnmarshalJSON(bytes []byte) (err er
 		SplitBy    *NotebookSplitBy             `json:"split_by,omitempty"`
 		Time       NullableNotebookCellTime     `json:"time,omitempty"`
 	}{}
-	err = json.Unmarshal(bytes, &required)
+	err = json.Unmarshal(bytes, &raw)
 	if err != nil {
 		return err
 	}
-	if required.Definition == nil {
+	err = json.Unmarshal(bytes, &required)
+	if err != nil {
+		o.UnparsedObject = raw
+	}
+	if _, ok := o.UnparsedObject["definition"]; required.Definition == nil && !ok {
 		return fmt.Errorf("Required field definition missing")
 	}
 	err = json.Unmarshal(bytes, &all)
 	if err != nil {
-		return err
+		o.UnparsedObject = raw
+		return nil
+	}
+	if v := all.GraphSize; v != nil && !v.IsValid() {
+		o.UnparsedObject = raw
+		return nil
 	}
 	o.Definition = all.Definition
 	o.GraphSize = all.GraphSize
