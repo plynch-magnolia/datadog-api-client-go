@@ -2031,7 +2031,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AWSAccount'
+              $ref: '#/components/schemas/AWSDeleteAccountRequest'
         description: AWS request object
         required: true
       responses:
@@ -9933,6 +9933,26 @@ components:
           items:
             $ref: '#/components/schemas/AWSAccount'
           type: array
+      type: object
+    AWSDeleteAccountRequest:
+      description: A list of AWS delete account objects.
+      example:
+        access_key_id: access_key_id
+        role_name: DatadogAWSIntegrationRole
+        account_id: "1234567"
+      properties:
+        access_key_id:
+          description: Your AWS access key ID. Only required if your AWS account is
+            a GovCloud or China account.
+          type: string
+        account_id:
+          description: Your AWS Account ID without dashes.
+          example: "1234567"
+          type: string
+        role_name:
+          description: Your Datadog role delegation name.
+          example: DatadogAWSIntegrationRole
+          type: string
       type: object
     AWSLogsAsyncError:
       description: Description of errors.
