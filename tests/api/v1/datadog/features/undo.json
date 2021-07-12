@@ -418,6 +418,37 @@
       "type": "idempotent"
     }
   },
+  "CreateFastlyIntegrationService": {
+    "tag": "Fastly Integration",
+    "undo": {
+      "operationId": "DeleteFastlyIntegrationService",
+      "parameters": [
+        {
+          "name": "service_id",
+          "source": "service_id"
+        }
+      ],
+      "type": "unsafe"
+    }
+  },
+  "DeleteFastlyIntegrationService": {
+    "tag": "Fastly Integration",
+    "undo": {
+      "type": "idempotent"
+    }
+  },
+  "GetFastlyIntegrationService": {
+    "tag": "Fastly Integration",
+    "undo": {
+      "type": "safe"
+    }
+  },
+  "UpdateFastlyIntegrationService": {
+    "tag": "Fastly Integration",
+    "undo": {
+      "type": "idempotent"
+    }
+  },
   "CreatePagerDutyIntegrationService": {
     "tag": "PagerDuty Integration",
     "undo": {

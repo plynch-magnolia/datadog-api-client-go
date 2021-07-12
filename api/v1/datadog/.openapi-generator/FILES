@@ -11,6 +11,7 @@ api_dashboard_lists.go
 api_dashboards.go
 api_downtimes.go
 api_events.go
+api_fastly_integration.go
 api_gcp_integration.go
 api_hosts.go
 api_ip_ranges.go
@@ -120,6 +121,11 @@ docs/EventStreamWidgetDefinitionType.md
 docs/EventTimelineWidgetDefinition.md
 docs/EventTimelineWidgetDefinitionType.md
 docs/EventsApi.md
+docs/FastlyIntegrationApi.md
+docs/FastlyService.md
+docs/FastlyServiceAccount.md
+docs/FastlyServiceId.md
+docs/FastlyServiceTags.md
 docs/FormulaAndFunctionEventAggregation.md
 docs/FormulaAndFunctionEventQueryDefinition.md
 docs/FormulaAndFunctionEventQueryDefinitionCompute.md
@@ -177,7 +183,6 @@ docs/IPPrefixesSynthetics.md
 docs/IPPrefixesWebhooks.md
 docs/IPRanges.md
 docs/IPRangesApi.md
-docs/IdpFormData.md
 docs/IdpResponse.md
 docs/ImageWidgetDefinition.md
 docs/ImageWidgetDefinitionType.md
@@ -262,6 +267,7 @@ docs/Monitor.md
 docs/MonitorDeviceID.md
 docs/MonitorGroupSearchResponse.md
 docs/MonitorGroupSearchResponseCounts.md
+docs/MonitorGroupSearchResponseCountsStatus.md
 docs/MonitorGroupSearchResult.md
 docs/MonitorOptions.md
 docs/MonitorOptionsAggregation.md
@@ -732,6 +738,10 @@ model_event_stream_widget_definition.go
 model_event_stream_widget_definition_type.go
 model_event_timeline_widget_definition.go
 model_event_timeline_widget_definition_type.go
+model_fastly_service.go
+model_fastly_service_account.go
+model_fastly_service_id.go
+model_fastly_service_tags.go
 model_formula_and_function_event_aggregation.go
 model_formula_and_function_event_query_definition.go
 model_formula_and_function_event_query_definition_compute.go
@@ -778,7 +788,6 @@ model_http_log_item.go
 model_http_method.go
 model_i_frame_widget_definition.go
 model_i_frame_widget_definition_type.go
-model_idp_form_data.go
 model_idp_response.go
 model_image_widget_definition.go
 model_image_widget_definition_type.go
@@ -866,6 +875,7 @@ model_monitor.go
 model_monitor_device_id.go
 model_monitor_group_search_response.go
 model_monitor_group_search_response_counts.go
+model_monitor_group_search_response_counts_status.go
 model_monitor_group_search_result.go
 model_monitor_options.go
 model_monitor_options_aggregation.go
